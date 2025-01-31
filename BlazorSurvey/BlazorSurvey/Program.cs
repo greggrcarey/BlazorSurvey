@@ -92,6 +92,18 @@ builder.Logging.AddOpenTelemetry(logging => logging.AddOtlpExporter(options =>
 
 #endregion
 
+#region CORS
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(
+    policy =>
+    {
+        policy.WithOrigins("https://localhost:7144", "http://localhost:5072").AllowAnyHeader().AllowAnyMethod();
+    });
+});
+
+#endregion
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
