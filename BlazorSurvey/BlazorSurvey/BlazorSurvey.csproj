@@ -1,12 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
-
-  <!--<PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <UserSecretsId>aspnet-BlazorSurvey-c7d5ede1-40bf-4ce7-903e-6600fad8d8db</UserSecretsId>
-  </PropertyGroup>-->
-
   <ItemGroup>
     <ProjectReference Include="..\BlazorSurvey.Client\BlazorSurvey.Client.csproj" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" />
