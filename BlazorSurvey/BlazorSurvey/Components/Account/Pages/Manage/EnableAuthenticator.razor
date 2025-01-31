@@ -4,6 +4,9 @@
 @using System.Globalization
 @using System.Text
 @using System.Text.Encodings.Web
+@using BlazorSurvey.Components.Account.Shared
+@using Microsoft.AspNetCore.Components.Forms
+
 @using Microsoft.AspNetCore.Identity
 @using BlazorSurvey.Data
 
@@ -67,7 +70,7 @@ else
 }
 
 @code {
-    private const string AuthenticatorUriFormat = "otpauth://totp/{0}:{1}?secret={2}&issuer={0}&digits=6";
+    private const string AuthenticatorUriFormat = $"otpauth://totp/{{0}}:{{1}}?secret={{2}}&issuer={{0}}&digits=6";
 
     private string? message;
     private ApplicationUser user = default!;
@@ -134,7 +137,7 @@ else
         authenticatorUri = GenerateQrCodeUri(email!, unformattedKey!);
     }
 
-    private string FormatKey(string unformattedKey)
+    private static string FormatKey(string unformattedKey)
     {
         var result = new StringBuilder();
         int currentPosition = 0;

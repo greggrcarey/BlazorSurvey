@@ -4,6 +4,9 @@
 @using System.Security.Claims
 @using System.Text
 @using System.Text.Encodings.Web
+@using BlazorSurvey.Components.Account.Shared
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Web
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
 @using BlazorSurvey.Data
@@ -174,7 +177,7 @@
         message = $"Error: {string.Join(",", result.Errors.Select(error => error.Description))}";
     }
 
-    private ApplicationUser CreateUser()
+    private static ApplicationUser CreateUser()
     {
         try
         {
