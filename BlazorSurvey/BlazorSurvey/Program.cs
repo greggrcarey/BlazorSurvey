@@ -8,6 +8,11 @@ using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using System.Text.Json.Serialization;
+using System.Text.Json;
+using BlazorSurvey;
+using Microsoft.Azure.Cosmos;
+using BlazorSurvey.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,6 +52,40 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
     .AddDefaultTokenProviders();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+#endregion
+
+#region CosmosDb
+
+builder.Services.AddSingleton(() =>
+{
+    JsonSerializerOptions jsOptions = new()
+    {
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        //Web defaults
+        PropertyNameCaseInsensitive = true,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        NumberHandling = JsonNumberHandling.AllowReadingFromString
+    };
+
+    CosmosSystemTextJsonSerializer cosmosSystemTextJsonSerializer = new(jsOptions);
+    CosmosClientOptions cosmosClientOptions = new()
+    {
+        ApplicationName = nameof(BlazorSurvey),
+        Serializer = cosmosSystemTextJsonSerializer
+    };
+
+    string? endpoint = configuration["CosmosDbAccountEndpoint"] ?? throw new InvalidOperationException("CosmosDbAccountEndpoint is missing from configuration");
+    string ? authkey = configuration["CosmosDbAuthKey"] ?? throw new InvalidOperationException("CosmosDbAuthKey is missing from configuration");
+
+    var client = new CosmosClient(
+        accountEndpoint: endpoint,
+        authKeyOrResourceToken: authkey,
+        clientOptions: cosmosClientOptions);
+
+    return client;
+
+});
+
 #endregion
 
 #region OTEL
