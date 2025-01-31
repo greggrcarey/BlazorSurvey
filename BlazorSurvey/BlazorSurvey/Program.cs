@@ -4,8 +4,18 @@ using BlazorSurvey.Data;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using OpenTelemetry.Logs;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
+
+#region Configuration
+IConfigurationRoot configuration = new ConfigurationBuilder()
+.AddUserSecrets<Program>()
+.Build();
+#endregion
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
@@ -13,6 +23,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveWebAssemblyComponents()
     .AddAuthenticationStateSerialization();
 
+#region Authentication
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();
@@ -36,6 +47,50 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
     .AddDefaultTokenProviders();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+#endregion
+
+#region OTEL
+builder.Services.AddOpenTelemetry()
+    .ConfigureResource(resource => resource.AddService(nameof(BlazorSurvey)))
+    .WithMetrics(metrics =>
+    {
+        metrics
+        .AddAspNetCoreInstrumentation()
+        .AddAspNetCoreInstrumentation();
+
+        metrics
+            .AddOtlpExporter(options =>
+            {
+                options.Endpoint = new Uri("http://localhost:5341/ingest/otlp/v1/logs");
+                options.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
+                options.Headers = $"X-Seq-ApiKey={configuration["local:SeqApiKey"]}";
+
+            });
+    })
+    .WithTracing(tracing =>
+    {
+        tracing
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation();
+
+        tracing.AddOtlpExporter(options =>
+        {
+            options.Endpoint = new Uri("http://localhost:5341/ingest/otlp/v1/logs");
+            options.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
+            options.Headers = $"X-Seq-ApiKey={configuration["local:SeqApiKey"]}";
+
+        });
+    });
+
+builder.Logging.AddOpenTelemetry(logging => logging.AddOtlpExporter(options =>
+{
+    options.Endpoint = new Uri("http://localhost:5341/ingest/otlp/v1/logs");
+    options.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
+    options.Headers = $"X-Seq-ApiKey={configuration["local:SeqApiKey"]}";
+
+}));
+
+#endregion
 
 var app = builder.Build();
 
