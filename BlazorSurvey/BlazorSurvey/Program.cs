@@ -67,11 +67,16 @@ builder.Services.AddSingleton(() =>
         NumberHandling = JsonNumberHandling.AllowReadingFromString
     };
 
-    CosmosSystemTextJsonSerializer cosmosSystemTextJsonSerializer = new(jsOptions);
+
+    //CosmosSystemTextJsonSerializer cosmosSystemTextJsonSerializer = new(jsOptions);
     CosmosClientOptions cosmosClientOptions = new()
     {
         ApplicationName = nameof(BlazorSurvey),
-        Serializer = cosmosSystemTextJsonSerializer
+        ConnectionMode = ConnectionMode.Direct,
+        MaxRetryAttemptsOnRateLimitedRequests = 2,
+        RequestTimeout = TimeSpan.FromSeconds(60),
+        ConsistencyLevel = ConsistencyLevel.Session,
+        UseSystemTextJsonSerializerWithOptions = jsOptions
     };
 
     string? endpoint = configuration["CosmosDbAccountEndpoint"] ?? throw new InvalidOperationException("CosmosDbAccountEndpoint is missing from configuration");
@@ -142,6 +147,8 @@ builder.Services.AddCors(options =>
 });
 
 #endregion
+
+
 
 var app = builder.Build();
 
