@@ -5,8 +5,18 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace BlazorSurvey.Services;
 
-public class CosmosDbService([FromServices] CosmosClient client, [FromServices] ILogger logger)
+public class CosmosDbService
 {
+    private readonly CosmosClient _client;
+    private readonly ILogger _logger;
+
+    public CosmosDbService(CosmosClient client, ILogger<CosmosDbService> logger)
+    {
+        _client = client;
+        _logger = logger;
+    }
+
+
     //Need to add resiliency
     //https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/conceptual-resilient-sdk-applications
     //https://learn.microsoft.com/en-us/dotnet/core/resilience/?tabs=dotnet-cli
@@ -15,7 +25,7 @@ public class CosmosDbService([FromServices] CosmosClient client, [FromServices] 
     private readonly string surveyContainerName = "Survey";
     private readonly string storedProcedureId = "processResultsFromSingleSurvey";
 
-    public async Task CreateSurveyBasetype(SurveyBase surveyBase)
+    public async Task CreateSurveyBasetypeAsync(SurveyBase surveyBase)
     {
         Container container = GetSurveyContainer();
         try
@@ -25,7 +35,7 @@ public class CosmosDbService([FromServices] CosmosClient client, [FromServices] 
         }
         catch (CosmosException cex)
         {
-            logger.LogError(cex, cex.Message, []);
+            _logger.LogError(cex, cex.Message, []);
         }
     }
 
@@ -93,7 +103,7 @@ public class CosmosDbService([FromServices] CosmosClient client, [FromServices] 
 
     }
 
-    public async Task<IEnumerable<SurveyResult>> GetResultsBySurveyBaseId(Guid surveyBaseId)
+    public async Task<IEnumerable<SurveyResult>> GetResultsBySurveyBaseIdAsync(Guid surveyBaseId)
     {
         var result = await GetSurveyContainer().Scripts
             .ExecuteStoredProcedureAsync<IEnumerable<SurveyResult>>(storedProcedureId, new PartitionKey(surveyBaseId.ToString()), [surveyBaseId.ToString()]);
@@ -103,7 +113,7 @@ public class CosmosDbService([FromServices] CosmosClient client, [FromServices] 
 
     private Container GetSurveyContainer()
     {
-        Container? container = client.GetContainer(surveyDbName, surveyContainerName);
+        Container? container = _client.GetContainer(surveyDbName, surveyContainerName);
 
         if (container is null)
         {

@@ -13,6 +13,7 @@ using System.Text.Json;
 using BlazorSurvey;
 using Microsoft.Azure.Cosmos;
 using BlazorSurvey.Services;
+using BlazorSurvey.Shared;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,7 +22,8 @@ IConfigurationRoot configuration = new ConfigurationBuilder()
 .AddUserSecrets<Program>()
 .Build();
 #endregion
-
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
@@ -56,7 +58,7 @@ builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSe
 
 #region CosmosDb
 
-builder.Services.AddSingleton(() =>
+builder.Services.AddSingleton<CosmosClient>(sp =>
 {
     JsonSerializerOptions jsOptions = new()
     {
@@ -68,7 +70,6 @@ builder.Services.AddSingleton(() =>
     };
 
 
-    //CosmosSystemTextJsonSerializer cosmosSystemTextJsonSerializer = new(jsOptions);
     CosmosClientOptions cosmosClientOptions = new()
     {
         ApplicationName = nameof(BlazorSurvey),
@@ -80,14 +81,12 @@ builder.Services.AddSingleton(() =>
     };
 
     string? endpoint = configuration["CosmosDbAccountEndpoint"] ?? throw new InvalidOperationException("CosmosDbAccountEndpoint is missing from configuration");
-    string ? authkey = configuration["CosmosDbAuthKey"] ?? throw new InvalidOperationException("CosmosDbAuthKey is missing from configuration");
+    string? authkey = configuration["CosmosDbAuthKey"] ?? throw new InvalidOperationException("CosmosDbAuthKey is missing from configuration");
 
-    var client = new CosmosClient(
+    return new CosmosClient(
         accountEndpoint: endpoint,
         authKeyOrResourceToken: authkey,
         clientOptions: cosmosClientOptions);
-
-    return client;
 
 });
 
@@ -149,6 +148,13 @@ builder.Services.AddCors(options =>
 #endregion
 
 
+builder.Services.AddSingleton<CosmosDbService>();
+builder.Services.AddSingleton<ISurveyService, ServerSurveyService>();
+builder.Services.AddSingleton<SurveyBaseModule>();
+
+
+
+
 
 var app = builder.Build();
 
@@ -165,10 +171,16 @@ else
     app.UseHsts();
 }
 
+app.UseSwagger();
+app.UseSwaggerUI();
+
 app.UseHttpsRedirection();
 
 
 app.UseAntiforgery();
+
+var surveyModule = app.Services.GetRequiredService<SurveyBaseModule>();
+surveyModule.MapSurveyBaseEndpoints(app);
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
