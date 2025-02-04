@@ -1,0 +1,50 @@
+﻿@page "/"
+@using MudBlazor
+@using BlazorSurvey.Client
+@using BlazorSurvey.Shared.Models
+@rendermode InteractiveAuto
+@inject NavigationManager NavigationManager
+@inject ISurveyService SurveyClient
+
+<PageTitle>Home</PageTitle>
+
+<h1>Hello, world!</h1>
+<MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/create-survey">Add new Survey</MudButton>
+<MudButton Variant="Variant.Filled" Color="Color.Primary">Add new Live Poll</MudButton>
+
+<p>RenderInfo.Name = @RendererInfo.Name;</p>
+<p>RenderInfo.IsIneractive = @RendererInfo.IsInteractive;</p>
+
+@if(_surveyModel is null){
+    <p>Loading...</p>
+}else{
+    <MudDataGrid Items="@_surveyModel" Filterable="false" SortMode="@SortMode.None" Groupable="false">
+        <Columns>
+            <PropertyColumn Property="x => x.Title" />
+            <PropertyColumn Property="x => x.Created" Format="g" />
+            <PropertyColumn Property="x => x.GetType().Name"/>
+            <TemplateColumn>
+                <CellTemplate>
+                    <MudStack Row>
+                        <MudButton Size="@Size.Small" Variant="@Variant.Filled" Color="@Color.Primary" @onclick="_ => NavigateToResults(context.Item.Id)">Results</MudButton>
+                    </MudStack>
+                </CellTemplate>
+            </TemplateColumn>
+        </Columns>
+
+    </MudDataGrid>
+}
+
+
+@code {
+    private SurveyBase[]? _surveyModel;
+
+    //Use the special class to track state
+
+    protected override async Task OnInitializedAsync() => _surveyModel = await SurveyClient.GetSurveys().ToArrayAsync<SurveyBase>();
+
+    private void NavigateToResults(Guid surveyId)
+    {
+        NavigationManager.NavigateTo($"/results/{surveyId}");
+    }
+}

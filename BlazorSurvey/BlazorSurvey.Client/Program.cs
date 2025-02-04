@@ -7,7 +7,9 @@ builder.Services.AddAuthorizationCore();
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddAuthenticationStateDeserialization();
 
-//builder.Services.AddScoped<ISurveyService, ClientSurveyService>();
+builder.Services.AddSingleton<SurveyState>();
+
+builder.Services.AddScoped<ISurveyService, ClientSurveyService>();
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:7246") });
 

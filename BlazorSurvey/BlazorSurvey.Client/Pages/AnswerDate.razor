@@ -1,0 +1,47 @@
+﻿@using MudBlazor
+@inject SurveyState SurveyState
+<h3>AnswerDate</h3>
+
+@if (QuestionData is not null)
+{
+    <MudCard>
+        <MudCardHeader>
+            <MudText Typo="Typo.h6">Date Question</MudText>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudText>@QuestionData.Title</MudText>
+            <br />
+            <MudDatePicker Label="Select your answer" DateChanged="OnDateChanged"></MudDatePicker>
+        </MudCardContent>
+    </MudCard>
+}
+
+@code {
+
+    [Parameter] public DateQuestion? QuestionData { get; set; }
+
+    private DateResponse dateResponse { get; set; } = new();
+
+    protected override void OnParametersSet()
+    {
+        if (QuestionData is not null)
+        {
+            DateResponse dateObject = new()
+                {
+                    QuestionId = QuestionData.Id,
+                    QuestionTitle = QuestionData.Title
+                };
+            this.dateResponse = dateObject;
+        }
+        base.OnParametersSet();
+    }
+
+    private void OnDateChanged(DateTime? newValue)
+    {
+        if (newValue.HasValue && QuestionData is not null && dateResponse is not null)
+        {
+            dateResponse.CalendarDateResponse = DateOnly.FromDateTime(newValue.Value);
+            SurveyState.InsertOrUpdateResponse(dateResponse);
+        }
+    }
+}

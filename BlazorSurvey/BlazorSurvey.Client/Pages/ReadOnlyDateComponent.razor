@@ -1,0 +1,25 @@
+﻿@using MudBlazor
+@inject SurveyState SurveyState
+<h3>ReadOnlyDateComponent</h3>
+
+@if (QuestionData is not null)
+{
+    <MudCard>
+        <MudCardActions><MudButton @onclick="RemoveQuestion" cursor-default aria-label="remove">X</MudButton></MudCardActions>
+        <MudCardHeader>
+            <MudText Typo="Typo.h6">Date Question</MudText>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudText>@QuestionData.Title</MudText>
+        </MudCardContent>
+    </MudCard> 
+}
+
+@code {
+    [Parameter] public DateQuestion? QuestionData { get; set; }
+
+    private void RemoveQuestion()
+    {
+        if (QuestionData is not null) SurveyState.RemoveQuestion(QuestionData);
+    }
+}

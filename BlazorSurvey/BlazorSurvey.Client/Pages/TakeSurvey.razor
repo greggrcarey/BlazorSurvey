@@ -1,0 +1,70 @@
+﻿@page "/take-survey/{SurveyId:guid}"
+@inject SurveyState SurveyState
+@inject ISurveyService SurveyService
+@inject NavigationManager NavigationManager
+@rendermode InteractiveAuto
+
+<h3>TakeSurvey</h3>
+
+<MudButton onclick="HandleSaveSurvey" Color="Color.Primary" Variant="Variant.Filled">Save Survey</MudButton>
+
+@if (string.IsNullOrEmpty(_errorMessage) && SurveyState.CurrentSurvey is null)
+{
+    <p>...Loading!</p>
+}
+else if(!string.IsNullOrEmpty(_errorMessage)){
+    <p>@_errorMessage</p>
+}
+else{
+    <MudText Typo="Typo.h1">@SurveyState.CurrentSurvey.Title</MudText>
+
+    @foreach(var question in SurveyState.CurrentSurvey.Questions)
+    {
+        var answerMetaData = AnswerComponentMetaData[question.GetType().Name];
+        answerMetaData.Parameters.Add("QuestionData", question);
+        <DynamicComponent Type="answerMetaData.Type" Parameters="answerMetaData.Parameters"></DynamicComponent>
+    }
+}
+
+
+@code {
+
+    [Parameter]
+    public Guid SurveyId { get; set; }
+    private string _errorMessage { get; set; } = string.Empty;
+
+    //request the Survey by Id
+    //     //Call the api from here.
+    //     //populate Survey questions with Survey.Questions
+    //     //Submit survey
+
+    private Dictionary<string, ComponentMetaData> AnswerComponentMetaData =>
+        new()
+            {
+                [nameof(DateQuestion)] = new ComponentMetaData()
+                {
+                    Type = typeof(AnswerDate),
+                    Name = "Date Question",
+                    Parameters = { }
+                }
+            };
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var surveyToTake = await SurveyService.GetSurveyByIdAsync(SurveyId);
+
+        if(surveyToTake is not null){
+            SurveyState.InitializeSurvey(surveyToTake);
+        }else{
+            _errorMessage = "There was an error getting the survey. Please verify your link or wait until later";
+        }
+        await base.OnParametersSetAsync();
+    }
+
+    private async Task HandleSaveSurvey(MouseEventArgs e)
+    {
+        await SurveyService.PutSurveyAsync(SurveyState.CurrentSurvey);
+        SurveyState.ResetSurvey();
+        NavigationManager.NavigateTo("/survey-complete");
+    }
+}

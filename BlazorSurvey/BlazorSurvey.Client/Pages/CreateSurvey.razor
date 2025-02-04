@@ -1,0 +1,140 @@
+﻿@page "/create-survey"
+@using MudBlazor
+@using BlazorSurvey.Client
+@rendermode InteractiveAuto
+@implements IDisposable
+@inject ISurveyService SurveyService
+@inject SurveyState SurveyState
+
+<h3>CreateSurvey</h3>
+
+@* Wait until I get the question components built 
+
+<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveSurvey">Save</MudButton>*@
+
+<p>RenderInfo.Name = @RendererInfo.Name;</p>
+<p>RenderInfo.IsIneractive = @RendererInfo.IsInteractive;</p>
+
+
+@if (SurveyState.CurrentSurvey is null)
+{
+    <p>Loading...</p>
+}
+else
+{
+
+    <MudButton Variant="Variant.Text" OnClick="SaveSurvey" Color="Color.Primary" Disabled="_isSaveDisabled">Save Survey</MudButton>
+
+    <MudTextField T="string" DebounceInterval="500" Label="Give your Survey a Title"
+                  Required="true" RequiredError="You must enter a title" @bind-Value="SurveyState.CurrentSurvey.Title" />
+
+    <p>
+        <label>
+            <select @bind="selectedValue">
+                <option value="">Select a Question to add to the Survey</option>
+                @foreach (var entry in Components)
+                {
+                    <option value="@entry.Key">@entry.Value.Name</option>
+                }
+            </select>
+        </label>
+    </p>
+
+    @if (_selectedComponent is not null)
+    {
+        <div class="border border-primary my-1 p-1">
+            <DynamicComponent Type="_selectedComponent.Type" />
+        </div>
+    }
+
+    @foreach (var question in SurveyState.CurrentSurvey.Questions)
+    {
+        var readOnlyMetaData = ReadOnlyComponents[question.GetType().Name];
+
+        readOnlyMetaData.Parameters.Add("QuestionData", question);
+
+        <DynamicComponent Type="readOnlyMetaData.Type" Parameters="readOnlyMetaData.Parameters" />
+    }
+}
+
+@code {
+    private string _selectedValue = string.Empty;
+    private bool _isSaveDisabled;
+
+    private ComponentMetaData? _selectedComponent;
+
+    private string selectedValue
+    {
+        get => _selectedValue;
+        set
+        {
+            if (_selectedValue != value)
+            {
+                _selectedValue = value;
+                UpdateSelectedComponent();
+            }
+        }
+    }
+
+    private Dictionary<string, ComponentMetaData> Components =>
+    new()
+        {
+            [nameof(DateComponent)] = new ComponentMetaData()
+            {
+                Type = typeof(DateComponent),
+                Name = "Date Question",
+                Parameters = { } //use this for context specific parameters i.e. filling the question out, viewing/ read only, set up diffent components
+            }
+        };
+
+    private Dictionary<string, ComponentMetaData> ReadOnlyComponents =>
+    new()
+        {
+            [nameof(DateQuestion)] = new ComponentMetaData()
+            {
+                Type = typeof(ReadOnlyDateComponent),
+                Name = "Date Question",
+                Parameters = { } //use this for context specific parameters i.e. filling the question out, viewing/ read only, set up diffent components
+            }
+        };
+
+    protected override void OnInitialized()
+    {
+        SurveyState.InitializeSurvey();
+        SurveyState.OnChange += OnSurveyStateChanged;
+        base.OnInitialized();
+    }
+
+    private void UpdateSelectedComponent()
+    {
+        if (!string.IsNullOrWhiteSpace(selectedValue) && Components.ContainsKey(selectedValue))
+        {
+            _selectedComponent = Components[selectedValue];
+        }
+        else
+        {
+            _selectedComponent = null;
+        }
+    }
+
+    private void OnSurveyStateChanged()
+    {
+        _selectedComponent = null;
+        selectedValue = string.Empty;
+        StateHasChanged();
+    }
+
+    private async Task SaveSurvey()
+    {
+        _isSaveDisabled = true;
+        await SurveyService.PostSurveyAsync(SurveyState.CurrentSurvey);
+        SurveyState.ResetSurvey();
+        _isSaveDisabled = false;
+
+    }
+
+    public void Dispose()
+    {
+        SurveyState.OnChange -= OnSurveyStateChanged;
+    }
+}

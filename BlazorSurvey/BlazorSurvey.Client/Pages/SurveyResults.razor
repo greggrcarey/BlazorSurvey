@@ -1,0 +1,40 @@
+﻿@page "/results/{SurveyId:guid}"
+@inject SurveyState SurveyState
+@inject ISurveyService SurveyService
+@inject NavigationManager NavigationManager
+@rendermode InteractiveAuto
+
+<h3>SurveyResults</h3>
+
+@if(SurveyState.Results.Count > 0)
+{
+    @foreach(var result in SurveyState.Results)
+    {
+        var resultMetaData = ResultComponentMetaData[result.ResponseType];
+        resultMetaData.Parameters.Add("ResultData", result);
+        <DynamicComponent Type="resultMetaData.Type" Parameters="resultMetaData.Parameters"/>
+    }
+}
+
+@code {
+    [Parameter]
+    public Guid SurveyId { get; set; }
+
+    private Dictionary<string, ComponentMetaData> ResultComponentMetaData => new()
+        {
+            ["dateResponse"] = new ComponentMetaData()
+            {
+                Type = typeof(DateResult),
+                Name = "Date Result",
+                Parameters = { }
+            }
+        };
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var results = await SurveyService.GetSurveyResultsAsync(SurveyId);
+
+        SurveyState.SetSurveyResults(results.ToList());
+
+    }
+}
