@@ -3,8 +3,10 @@
 @using BlazorSurvey.Client
 @using BlazorSurvey.Shared.Models
 @rendermode InteractiveAuto
+@implements IDisposable
 @inject NavigationManager NavigationManager
 @inject ISurveyService SurveyClient
+@inject PersistentComponentState ApplicationState
 
 <PageTitle>Home</PageTitle>
 
@@ -15,14 +17,17 @@
 <p>RenderInfo.Name = @RendererInfo.Name;</p>
 <p>RenderInfo.IsIneractive = @RendererInfo.IsInteractive;</p>
 
-@if(_surveyModel is null){
+@if (_surveyModel is null)
+{
     <p>Loading...</p>
-}else{
+}
+else
+{
     <MudDataGrid Items="@_surveyModel" Filterable="false" SortMode="@SortMode.None" Groupable="false">
         <Columns>
             <PropertyColumn Property="x => x.Title" />
             <PropertyColumn Property="x => x.Created" Format="g" />
-            <PropertyColumn Property="x => x.GetType().Name"/>
+            <PropertyColumn Property="x => x.GetType().Name" />
             <TemplateColumn>
                 <CellTemplate>
                     <MudStack Row>
@@ -38,13 +43,43 @@
 
 @code {
     private SurveyBase[]? _surveyModel;
+    private PersistingComponentStateSubscription persistingSubscription;
 
     //Use the special class to track state
 
-    protected override async Task OnInitializedAsync() => _surveyModel = await SurveyClient.GetSurveys().ToArrayAsync<SurveyBase>();
+    protected override async Task OnInitializedAsync()
+    {
+
+        persistingSubscription = ApplicationState.RegisterOnPersisting(PersistData);
+
+        if (!ApplicationState.TryTakeFromJson<SurveyBase[]>(nameof(_surveyModel), out var storedData))
+        {
+            await GetSurveys();
+        }
+        else
+        {
+            _surveyModel = storedData;
+        }
+
+    }
+
+    private async Task GetSurveys()
+    {
+        _surveyModel =  await SurveyClient.GetSurveys().ToArrayAsync<SurveyBase>();
+    }
 
     private void NavigateToResults(Guid surveyId)
     {
         NavigationManager.NavigateTo($"/results/{surveyId}");
     }
+
+    private Task PersistData()
+    {
+
+        ApplicationState.PersistAsJson(nameof(_surveyModel), _surveyModel);
+
+        return Task.CompletedTask;
+    }
+
+    void IDisposable.Dispose() => persistingSubscription.Dispose();
 }
