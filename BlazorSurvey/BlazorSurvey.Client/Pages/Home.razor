@@ -45,8 +45,6 @@ else
     private SurveyBase[]? _surveyModel;
     private PersistingComponentStateSubscription persistingSubscription;
 
-    //Use the special class to track state
-
     protected override async Task OnInitializedAsync()
     {
 
@@ -58,7 +56,7 @@ else
         }
         else
         {
-            _surveyModel = storedData;
+            _surveyModel = storedData!;
         }
 
     }
