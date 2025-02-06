@@ -2,10 +2,11 @@
 @using MudBlazor
 @using BlazorSurvey.Client
 @using BlazorSurvey.Shared.Models
-@implements IDisposable
+@implements IAsyncDisposable
 @inject NavigationManager NavigationManager
 @inject ISurveyService SurveyClient
 @inject PersistentComponentState ApplicationState
+@inject IJSRuntime JS
 
 <PageTitle>Home</PageTitle>
 
@@ -30,6 +31,13 @@ else
             <TemplateColumn>
                 <CellTemplate>
                     <MudStack Row>
+                        <MudButton Size="@Size.Small" Variant="@Variant.Filled" Color="@Color.Primary" @onclick="_ => CopySurveyLink(context.Item.Id)">Copy Link to Survey</MudButton>
+                    </MudStack>
+                </CellTemplate>
+            </TemplateColumn>
+            <TemplateColumn>
+                <CellTemplate>
+                    <MudStack Row>
                         <MudButton Size="@Size.Small" Variant="@Variant.Filled" Color="@Color.Primary" @onclick="_ => NavigateToResults(context.Item.Id)">Results</MudButton>
                     </MudStack>
                 </CellTemplate>
@@ -43,6 +51,15 @@ else
 @code {
     private SurveyBase[]? _surveyModel;
     private PersistingComponentStateSubscription persistingSubscription;
+    private IJSObjectReference? module;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            module = await JS.InvokeAsync<IJSObjectReference>("import", "/pages/Home.razor.js");
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -60,9 +77,19 @@ else
 
     }
 
+    private async Task CopySurveyLink(Guid id)
+    {
+        var surveyLink = NavigationManager.ToAbsoluteUri($"take-survey/{id.ToString()}");
+
+        if (module is not null)
+        {
+            await module.InvokeVoidAsync("CopyToClipboard", surveyLink.ToString());
+        }
+    }
+
     private async Task GetSurveys()
     {
-        _surveyModel =  await SurveyClient.GetSurveys().ToArrayAsync<SurveyBase>();
+        _surveyModel = await SurveyClient.GetSurveys().ToArrayAsync<SurveyBase>();
     }
 
     private void NavigateToResults(Guid surveyId)
@@ -78,5 +105,20 @@ else
         return Task.CompletedTask;
     }
 
-    void IDisposable.Dispose() => persistingSubscription.Dispose();
+    async ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        if (module is not null)
+        {
+            try
+            {
+                await module.DisposeAsync();
+
+            }
+            catch (JSDisconnectedException)
+            {
+                //Ignore disconneted
+            }
+        }
+        persistingSubscription.Dispose();
+    }
 }
