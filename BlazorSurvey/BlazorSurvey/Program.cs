@@ -15,6 +15,7 @@ using Microsoft.Azure.Cosmos;
 using BlazorSurvey.Services;
 using BlazorSurvey.Shared;
 using MudBlazor.Services;
+using System.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -166,6 +167,27 @@ if (app.Environment.IsDevelopment())
 {
     app.UseWebAssemblyDebugging();
     app.UseMigrationsEndPoint();
+
+    await Task.Run(async () =>
+    {
+        await Task.Delay(3000);
+
+        var homeUrl = "https://localhost:7246";
+
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = homeUrl,
+                UseShellExecute = true
+            });
+        }
+        catch (Exception ex )
+        {
+            Console.WriteLine("Falied to open homepage: {ex.Message}", ex.Message);
+        }
+
+    });
 }
 else
 {

@@ -53,14 +53,6 @@ else
     private PersistingComponentStateSubscription persistingSubscription;
     private IJSObjectReference? module;
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            module = await JS.InvokeAsync<IJSObjectReference>("import", "/pages/Home.razor.js");
-        }
-    }
-
     protected override async Task OnInitializedAsync()
     {
 
@@ -77,6 +69,14 @@ else
 
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            module = await JS.InvokeAsync<IJSObjectReference>("import", "/pages/Home.razor.js");
+        }
+    }
+  
     private async Task CopySurveyLink(Guid id)
     {
         var surveyLink = NavigationManager.ToAbsoluteUri($"take-survey/{id.ToString()}");
