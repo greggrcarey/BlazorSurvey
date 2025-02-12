@@ -2,8 +2,12 @@
 @inject SurveyState SurveyState
 @inject ISurveyService SurveyService
 @inject NavigationManager NavigationManager
+@inject PersistentComponentState ApplicationState
+@implements IDisposable
 
 <h3>TakeSurvey</h3>
+<p>RenderInfo.Name = @RendererInfo.Name;</p>
+<p>RenderInfo.IsIneractive = @RendererInfo.IsInteractive;</p>
 
 <MudButton onclick="HandleSaveSurvey" Color="Color.Primary" Variant="Variant.Filled">Save Survey</MudButton>
 
@@ -31,6 +35,7 @@ else{
     [Parameter]
     public Guid SurveyId { get; set; }
     private string _errorMessage { get; set; } = string.Empty;
+    private PersistingComponentStateSubscription persistingSubscription;
 
     //request the Survey by Id
     //     //Call the api from here.
@@ -48,16 +53,45 @@ else{
                 }
             };
 
+    protected override async Task OnInitializedAsync()
+    {
+        persistingSubscription = ApplicationState.RegisterOnPersisting(PersistData);
+
+        if(!ApplicationState.TryTakeFromJson<Survey>(nameof(SurveyState.CurrentSurvey), out var restoredData))
+        {
+            await GetSurvey();
+        }
+        else
+        {
+            SurveyState.InitializeSurvey(restoredData!);
+        }
+
+    }
+
     protected override async Task OnParametersSetAsync()
     {
-        var surveyToTake = await SurveyService.GetSurveyByIdAsync(SurveyId);
+        await GetSurvey();
+        await base.OnParametersSetAsync();
+    }
 
-        if(surveyToTake is not null){
+    private async Task GetSurvey()
+    {
+        Survey? surveyToTake = await SurveyService.GetSurveyByIdAsync(SurveyId);
+
+        if (surveyToTake is not null)
+        {
             SurveyState.InitializeSurvey(surveyToTake);
-        }else{
+        }
+        else
+        {
             _errorMessage = "There was an error getting the survey. Please verify your link or wait until later";
         }
-        await base.OnParametersSetAsync();
+    }
+
+    private Task PersistData()
+    {
+        ApplicationState.PersistAsJson(nameof(SurveyState.CurrentSurvey), SurveyState.CurrentSurvey);
+        return Task.CompletedTask;
     }
 
     private async Task HandleSaveSurvey(MouseEventArgs e)
@@ -66,4 +100,6 @@ else{
         SurveyState.ResetSurvey();
         NavigationManager.NavigateTo("/survey-complete");
     }
+
+    public void Dispose() => persistingSubscription.Dispose();
 }
