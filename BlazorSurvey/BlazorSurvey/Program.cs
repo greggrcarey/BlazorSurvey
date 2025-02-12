@@ -151,7 +151,7 @@ builder.Services.AddCors(options =>
 
 
 builder.Services.AddMudServices();
-builder.Services.AddSingleton<SurveyState>();
+builder.Services.AddScoped<SurveyState>();
 builder.Services.AddSingleton<CosmosDbService>();
 builder.Services.AddSingleton<ISurveyService, ServerSurveyService>();
 builder.Services.AddSingleton<SurveyBaseModule>();
