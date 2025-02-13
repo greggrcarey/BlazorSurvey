@@ -1,5 +1,3 @@
-using System.Security.Claims;
-using System.Text.Json;
 using BlazorSurvey.Components.Account.Pages;
 using BlazorSurvey.Components.Account.Pages.Manage;
 using BlazorSurvey.Data;
@@ -9,6 +7,8 @@ using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
+using System.Security.Claims;
+using System.Text.Json;
 
 namespace Microsoft.AspNetCore.Routing
 {
