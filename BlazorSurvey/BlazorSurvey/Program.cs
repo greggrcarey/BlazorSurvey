@@ -16,6 +16,8 @@ using BlazorSurvey.Services;
 using BlazorSurvey.Shared;
 using MudBlazor.Services;
 using System.Diagnostics;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -151,6 +153,7 @@ builder.Services.AddCors(options =>
 
 
 builder.Services.AddMudServices();
+builder.Services.TryAddScoped<IWebAssemblyHostEnvironment, ServerHostEnvironment>();
 builder.Services.AddScoped<SurveyState>();
 builder.Services.AddSingleton<CosmosDbService>();
 builder.Services.AddSingleton<ISurveyService, ServerSurveyService>();

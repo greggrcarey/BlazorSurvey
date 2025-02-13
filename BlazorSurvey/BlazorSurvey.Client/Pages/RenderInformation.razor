@@ -1,0 +1,9 @@
+﻿@using Microsoft.AspNetCore.Components.WebAssembly.Hosting
+@inject IWebAssemblyHostEnvironment Env
+
+
+@if (Env.Environment is "Development")
+{
+<p>RenderInfo.Name = @RendererInfo.Name;</p>
+<p>RenderInfo.IsIneractive = @RendererInfo.IsInteractive;</p>
+}
