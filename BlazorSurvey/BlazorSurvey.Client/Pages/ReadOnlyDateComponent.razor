@@ -1,18 +1,18 @@
 ﻿@using MudBlazor
 @inject SurveyState SurveyState
-<h3>ReadOnlyDateComponent</h3>
 
 @if (QuestionData is not null)
 {
     <MudCard>
-        <MudCardActions><MudButton @onclick="RemoveQuestion" cursor-default aria-label="remove">X</MudButton></MudCardActions>
-        <MudCardHeader>
+        <MudCardHeader Class="flex-row">
             <MudText Typo="Typo.h6">Date Question</MudText>
+            <MudSpacer/>
+            <MudCardActions><MudButton @onclick="RemoveQuestion" cursor-default aria-label="remove">X</MudButton></MudCardActions>
         </MudCardHeader>
         <MudCardContent>
             <MudText>@QuestionData.Title</MudText>
         </MudCardContent>
-    </MudCard> 
+    </MudCard>
 }
 
 @code {

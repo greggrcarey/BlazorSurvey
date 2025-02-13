@@ -1,4 +1,4 @@
-﻿<h3>DateResult</h3>
+﻿<h3>Date Responses</h3>
 
 @if (ResultData is not null)
 {
@@ -7,8 +7,6 @@
             <MudText Typo="Typo.h6">@ResultData.Title</MudText>
         </MudCardHeader>
         <MudCardContent>
-            <MudText>Survey Results</MudText>
-            <br />
             @foreach (var date in ResultData.Results)
             {
                 <MudItem>@date</MudItem>

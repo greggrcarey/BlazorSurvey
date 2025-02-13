@@ -1,5 +1,4 @@
-﻿using BlazorSurvey.Shared.Models;
-using BlazorSurvey.Shared.Validation;
+﻿using BlazorSurvey.Shared.Validation;
 using System.Text.Json.Serialization;
 
 namespace BlazorSurvey.Shared.Models;

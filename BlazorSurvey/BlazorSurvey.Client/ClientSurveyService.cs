@@ -14,9 +14,9 @@ internal class ClientSurveyService(HttpClient httpClient) : ISurveyService
         return await httpClient.GetFromJsonAsync<Survey>($"/api/survey/{surveyId}");
     }
 
-    public async Task<IEnumerable<SurveyResult>> GetSurveyResultsAsync(Guid surveyId)
+    public async Task<SurveyResponseRollup?> GetSurveyResultsAsync(Guid surveyId)
     {
-        return await httpClient.GetFromJsonAsync<List<SurveyResult>>($"/api/survey/response/{surveyId}") ?? [];
+        return await httpClient.GetFromJsonAsync<SurveyResponseRollup>($"/api/survey/response/{surveyId}");
     }
 
     public async IAsyncEnumerable<SurveyBase> GetSurveys()

@@ -9,8 +9,7 @@ namespace BlazorSurvey.Shared;
 public class SurveyState
 {
     public Survey CurrentSurvey { get; private set; } = new Survey();
-
-    public List<SurveyResult> Results { get; private set; } = [];
+    public SurveyResponseRollup? SurveyResponseRollup { get; private set; }
     public QuestionBase? Question { get; set; }
 
     public event Action? OnChange;
@@ -76,10 +75,13 @@ public class SurveyState
         NotifyStateChanged();
     }
 
-    public void SetSurveyResults(List<SurveyResult> results)
+    public void SetSurveyResults(SurveyResponseRollup results)
     {
-        Results = results;
-        NotifyStateChanged();
+        if(results is not null)
+        {
+            SurveyResponseRollup = results;
+            NotifyStateChanged();
+        }
     }
 
     private void NotifyStateChanged() => OnChange?.Invoke();

@@ -3,21 +3,33 @@
 @inject ISurveyService SurveyService
 @inject NavigationManager NavigationManager
 
-<h3>SurveyResults</h3>
+<h3>Survey Results</h3>
 
-@if(SurveyState.Results.Count > 0)
+@if (SurveyState.SurveyResponseRollup is not null)
 {
-    @foreach(var result in SurveyState.Results)
+    <MudText Typo="Typo.h1">Results for @SurveyState.SurveyResponseRollup.Title</MudText>
+}
+
+@if (SurveyState.SurveyResponseRollup is not null &&
+     SurveyState.SurveyResponseRollup.Results is not null &&
+     SurveyState.SurveyResponseRollup.Results.Count > 0)
+{
+    @foreach (var result in SurveyState.SurveyResponseRollup.Results)
     {
         var resultMetaData = ResultComponentMetaData[result.ResponseType];
         resultMetaData.Parameters.Add("ResultData", result);
-        <DynamicComponent Type="resultMetaData.Type" Parameters="resultMetaData.Parameters"/>
+        <DynamicComponent Type="resultMetaData.Type" Parameters="resultMetaData.Parameters" />
     }
+}
+else
+{
+    <MudText Typo="Typo.body1">No results to display for this survey.</MudText>
 }
 
 @code {
     [Parameter]
     public Guid SurveyId { get; set; }
+    private string surveyTitle { get; set; } = string.Empty;
 
     private Dictionary<string, ComponentMetaData> ResultComponentMetaData => new()
         {
@@ -31,9 +43,13 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        var results = await SurveyService.GetSurveyResultsAsync(SurveyId);
+        var result = await SurveyService.GetSurveyResultsAsync(SurveyId);
 
-        SurveyState.SetSurveyResults(results.ToList());
+        if (result is not null)
+        {
+            SurveyState.SetSurveyResults(result);
+        }
+
 
     }
 }

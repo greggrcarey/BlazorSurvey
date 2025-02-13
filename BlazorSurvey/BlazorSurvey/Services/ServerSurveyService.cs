@@ -18,12 +18,12 @@ public class ServerSurveyService : ISurveyService
         return await _cosmosDbService.GetSurveyBaseAsync<Survey>(surveyId);
     }
 
-    public async Task<IEnumerable<SurveyResult>> GetSurveyResultsAsync(Guid surveyId)
+    public async Task<SurveyResponseRollup?> GetSurveyResultsAsync(Guid surveyId)
     {
         return await _cosmosDbService.GetResultsBySurveyBaseIdAsync(surveyId);
     }
 
-    public  IAsyncEnumerable<SurveyBase> GetSurveys()
+    public IAsyncEnumerable<SurveyBase> GetSurveys()
     {
         return _cosmosDbService.GetSurveyBaseIAsyncEnumerable<SurveyBase>();
     }

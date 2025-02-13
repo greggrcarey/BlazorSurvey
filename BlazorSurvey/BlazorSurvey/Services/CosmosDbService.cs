@@ -1,7 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using BlazorSurvey.Shared.Models;
 using Microsoft.Azure.Cosmos;
-using BlazorSurvey.Shared.Models;
-using System.Diagnostics.CodeAnalysis;
 
 namespace BlazorSurvey.Services;
 
@@ -31,7 +29,7 @@ public class CosmosDbService
         try
         {
             ItemResponse<SurveyBase>? surveyBaseResponse = await container.CreateItemAsync(surveyBase, partitionKey: new PartitionKey(surveyBase.Id.ToString()));
-            
+
         }
         catch (CosmosException cex)
         {
@@ -103,10 +101,10 @@ public class CosmosDbService
 
     }
 
-    public async Task<IEnumerable<SurveyResult>> GetResultsBySurveyBaseIdAsync(Guid surveyBaseId)
+    public async Task<SurveyResponseRollup> GetResultsBySurveyBaseIdAsync(Guid surveyBaseId)
     {
         var result = await GetSurveyContainer().Scripts
-            .ExecuteStoredProcedureAsync<IEnumerable<SurveyResult>>(storedProcedureId, new PartitionKey(surveyBaseId.ToString()), [surveyBaseId.ToString()]);
+            .ExecuteStoredProcedureAsync<SurveyResponseRollup>(storedProcedureId, new PartitionKey(surveyBaseId.ToString()), [surveyBaseId.ToString()]);
 
         return result.Resource;
     }

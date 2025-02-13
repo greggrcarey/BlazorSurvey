@@ -1,23 +1,23 @@
+using BlazorSurvey;
 using BlazorSurvey.Components;
 using BlazorSurvey.Components.Account;
 using BlazorSurvey.Data;
+using BlazorSurvey.Services;
+using BlazorSurvey.Shared;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Azure.Cosmos;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using MudBlazor.Services;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-using System.Text.Json.Serialization;
-using System.Text.Json;
-using BlazorSurvey;
-using Microsoft.Azure.Cosmos;
-using BlazorSurvey.Services;
-using BlazorSurvey.Shared;
-using MudBlazor.Services;
 using System.Diagnostics;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -185,7 +185,7 @@ if (app.Environment.IsDevelopment())
                 UseShellExecute = true
             });
         }
-        catch (Exception ex )
+        catch (Exception ex)
         {
             Console.WriteLine("Falied to open homepage: {ex.Message}", ex.Message);
         }

@@ -1,5 +1,4 @@
-﻿using BlazorSurvey.Shared.Models;
-using BlazorSurvey.Shared.Validation;
+﻿using BlazorSurvey.Shared.Validation;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
@@ -26,7 +25,7 @@ public record SurveyBase
         base.ToString();
 
         return $"Id: {Id}, "
-               + $"Version: {Version}, " 
+               + $"Version: {Version}, "
                + $"Title: {Title}, "
                + $"OrderBy: {OrderBy}, "
                + $"Created: {Created}, "

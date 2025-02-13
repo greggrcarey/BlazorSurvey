@@ -9,5 +9,5 @@ public interface ISurveyService
     Task PostSurveyAsync(Survey surveyModel);
     Task<Survey?> GetSurveyByIdAsync(Guid surveyId);
     Task PutSurveyAsync(Survey surveyModel);
-    Task<IEnumerable<SurveyResult>> GetSurveyResultsAsync(Guid surveyId);
+    Task<SurveyResponseRollup?> GetSurveyResultsAsync(Guid surveyId);
 }

@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
+﻿using BlazorSurvey.Services;
 using BlazorSurvey.Shared.Models;
-using BlazorSurvey.Services;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 
 namespace BlazorSurvey;
 
@@ -108,7 +108,7 @@ public class SurveyBaseModule
         return TypedResults.NoContent();
     }
 
-    public async Task<Results<Ok<IEnumerable<SurveyResult>>, NotFound>> GetSurveyResponseById(Guid id)
+    public async Task<Results<Ok<SurveyResponseRollup>, NotFound>> GetSurveyResponseById(Guid id)
     {
         _logger.LogInformation("GetSurveyResponseById called");
         var result = await _cosmosDbService.GetResultsBySurveyBaseIdAsync(id);
