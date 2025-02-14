@@ -1,5 +1,6 @@
 ﻿using BlazorSurvey.Shared.Models;
 using Microsoft.Azure.Cosmos;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace BlazorSurvey.Services;
 
@@ -7,11 +8,18 @@ public class CosmosDbService
 {
     private readonly CosmosClient _client;
     private readonly ILogger _logger;
+    private readonly IMemoryCache _memoryCache;
+    private readonly MemoryCacheEntryOptions CacheEntryOptions = new MemoryCacheEntryOptions
+    {
+        Size = 1024 * 2,
+        AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(1)
+    };
 
-    public CosmosDbService(CosmosClient client, ILogger<CosmosDbService> logger)
+    public CosmosDbService(CosmosClient client, ILogger<CosmosDbService> logger, IMemoryCache memoryCache)
     {
         _client = client;
         _logger = logger;
+        _memoryCache = memoryCache;
     }
 
 
@@ -29,6 +37,11 @@ public class CosmosDbService
         try
         {
             ItemResponse<SurveyBase>? surveyBaseResponse = await container.CreateItemAsync(surveyBase, partitionKey: new PartitionKey(surveyBase.Id.ToString()));
+            if (surveyBaseResponse.StatusCode == System.Net.HttpStatusCode.Created || 
+                surveyBaseResponse.StatusCode == System.Net.HttpStatusCode.Accepted)
+            {
+                _memoryCache.Set<SurveyBase>(surveyBase.Id, surveyBaseResponse.Resource, CacheEntryOptions);
+            }
 
         }
         catch (CosmosException cex)
@@ -58,32 +71,68 @@ public class CosmosDbService
         }
     }
 
-    public async Task<SurveyBase> GetSurveyBaseAsync(Guid SurveyBaseId)
+    public async Task<SurveyBase> GetSurveyBaseAsync(Guid surveyBaseId)
     {
-        Container surveyContainer = GetSurveyContainer();
-        return await surveyContainer.ReadItemAsync<SurveyBase>(id: SurveyBaseId.ToString(), new PartitionKey(SurveyBaseId.ToString()));
+        SurveyBase output = new();
+
+        if (!_memoryCache.TryGetValue<SurveyBase>(surveyBaseId, out SurveyBase? cachedValue))
+        {
+            Container surveyContainer = GetSurveyContainer();
+            cachedValue = await surveyContainer.ReadItemAsync<SurveyBase>(id: surveyBaseId.ToString(), new PartitionKey(surveyBaseId.ToString()));
+
+            _memoryCache.Set<SurveyBase>(surveyBaseId, cachedValue, CacheEntryOptions);
+
+        }
+
+        if (cachedValue is not null)
+        {
+            output = cachedValue;
+
+        }
+
+        return output;
+
     }
 
-    public async Task<T> GetSurveyBaseAsync<T>(Guid SurveyBaseId) where T : SurveyBase
+    public async Task<T> GetSurveyBaseAsync<T>(Guid surveyBaseId) where T : SurveyBase
     {
-        //Breaks if the wrong type is passed in
-        Container surveyContainer = GetSurveyContainer();
+        SurveyBase output = new();
 
-        ItemResponse<T>? response = await surveyContainer.ReadItemAsync<T>(id: SurveyBaseId.ToString(), new PartitionKey(SurveyBaseId.ToString()));
-        if (response.Resource is not null)
+        if (!_memoryCache.TryGetValue<T>(surveyBaseId, out T? cachedValue))
         {
-            return response.Resource;
+            //Breaks if the wrong type is passed in
+            Container surveyContainer = GetSurveyContainer();
+
+            ItemResponse<T>? response = await surveyContainer.ReadItemAsync<T>(id: surveyBaseId.ToString(), new PartitionKey(surveyBaseId.ToString()));
+            if (response.Resource is not null)
+            {
+                cachedValue = response.Resource;
+                _memoryCache.Set<T>(surveyBaseId, cachedValue, CacheEntryOptions);
+
+            }
+            else
+            {
+                throw new InvalidCastException();
+            }
+
         }
-        else
+
+        if (cachedValue is not null)
         {
-            throw new InvalidCastException();
+            output = cachedValue;
         }
+
+        return (T)output;
+
 
     }
     public async Task<SurveyBase> UpsertSurveyBaseAsync(SurveyBase surveyBase)
     {
         Container surveyContainer = GetSurveyContainer();
         ItemResponse<SurveyBase>? response = await surveyContainer.UpsertItemAsync(item: surveyBase, partitionKey: new PartitionKey(surveyBase.Id.ToString()));
+
+        _memoryCache.Remove(surveyBase.Id);
+        _memoryCache.Set<SurveyBase>(surveyBase.Id, response.Resource, CacheEntryOptions);
 
         return response.Resource;
     }
@@ -93,6 +142,12 @@ public class CosmosDbService
         try
         {
             ItemResponse<SurveyBase>? response = await surveyContainer.DeleteItemAsync<SurveyBase>(surveyId.ToString(), new PartitionKey(surveyId.ToString()));
+
+            if(response.StatusCode is System.Net.HttpStatusCode.OK)
+            {
+                _memoryCache.Remove(surveyId);
+            }
+
         }
         catch (Exception ex)
         {
