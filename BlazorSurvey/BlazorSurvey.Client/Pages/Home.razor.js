@@ -6,3 +6,7 @@
             alert(error);
         });
 }
+
+export function ConfirmBeforeDelete() {
+    return window.confirm("Are you sure you want to delete this survey? This cannot be undone.");
+}

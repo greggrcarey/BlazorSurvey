@@ -40,6 +40,13 @@ else
                     </MudStack>
                 </CellTemplate>
             </TemplateColumn>
+            <TemplateColumn>
+                <CellTemplate>
+                    <MudStack Row>
+                        <MudButton Size="@Size.Small" Variant="@Variant.Filled" Color="@Color.Primary" @onclick="_ => DeleteSurvey(context.Item)">Delete Survey</MudButton>
+                    </MudStack>
+                </CellTemplate>
+            </TemplateColumn>
         </Columns>
 
     </MudDataGrid>
@@ -74,7 +81,7 @@ else
             module = await JS.InvokeAsync<IJSObjectReference>("import", "/pages/Home.razor.js");
         }
     }
-  
+
     private async Task CopySurveyLink(Guid id)
     {
         var surveyLink = NavigationManager.ToAbsoluteUri($"take-survey/{id.ToString()}");
@@ -101,6 +108,23 @@ else
         ApplicationState.PersistAsJson(nameof(_surveyModel), _surveyModel);
 
         return Task.CompletedTask;
+    }
+
+    private async Task DeleteSurvey(SurveyBase survey)
+    {
+        if(module is not null)
+        {
+            var confirmDelete = await module.InvokeAsync<bool>("ConfirmBeforeDelete");
+            if (!confirmDelete) return;
+        }
+
+        if(_surveyModel is not null)
+        {
+            var test = _surveyModel.ToList();
+            test.Remove(survey);
+            _surveyModel = test.ToArray();
+            await SurveyClient.DeleteSurvey(survey.Id);
+        }
     }
 
     async ValueTask IAsyncDisposable.DisposeAsync()

@@ -10,4 +10,5 @@ public interface ISurveyService
     Task<Survey?> GetSurveyByIdAsync(Guid surveyId);
     Task PutSurveyAsync(Survey surveyModel);
     Task<SurveyResponseRollup?> GetSurveyResultsAsync(Guid surveyId);
+    Task DeleteSurvey(Guid SurveyId);
 }

@@ -8,6 +8,11 @@ public class ServerSurveyService : ISurveyService
     private readonly CosmosDbService _cosmosDbService;
     public ServerSurveyService(CosmosDbService cosmosDbService) => _cosmosDbService = cosmosDbService;
 
+    public async Task DeleteSurvey(Guid surveyId)
+    {
+        await _cosmosDbService.DeleteSurveyBaseAsync(surveyId);
+    }
+
     public List<LivePoll> GetLivePolls()
     {
         throw new NotImplementedException();
