@@ -10,3 +10,16 @@ public abstract class ResponseBase
     public string QuestionTitle { get; set; } = string.Empty;
     public Guid QuestionId { get; set; }
 }
+
+[JsonSourceGenerationOptions(
+       DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        //Web defaults
+        PropertyNameCaseInsensitive = true,
+        PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
+        NumberHandling = JsonNumberHandling.AllowReadingFromString)]
+[JsonSerializable(typeof(DateResponse))]
+[JsonSerializable(typeof(ResponseBase))]
+public partial class ResponseBaseSerializer : JsonSerializerContext
+{
+
+}

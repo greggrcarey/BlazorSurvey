@@ -4,6 +4,7 @@ using BlazorSurvey.Components.Account;
 using BlazorSurvey.Data;
 using BlazorSurvey.Services;
 using BlazorSurvey.Shared;
+using BlazorSurvey.Shared.Models;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.AspNetCore.Identity;
@@ -33,6 +34,13 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents()
     .AddAuthenticationStateSerialization();
+
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.TypeInfoResolverChain.Insert(0, SurveyBaseSerializer.Default);
+    options.SerializerOptions.TypeInfoResolverChain.Insert(1, QuestionBaseSerializer.Default);
+    options.SerializerOptions.TypeInfoResolverChain.Insert(2, ResponseBaseSerializer.Default);
+});
 
 #region Authentication
 builder.Services.AddCascadingAuthenticationState();
@@ -73,6 +81,8 @@ builder.Services.AddSingleton<CosmosClient>(sp =>
         NumberHandling = JsonNumberHandling.AllowReadingFromString
     };
 
+    
+
 
     CosmosClientOptions cosmosClientOptions = new()
     {
@@ -81,7 +91,8 @@ builder.Services.AddSingleton<CosmosClient>(sp =>
         MaxRetryAttemptsOnRateLimitedRequests = 2,
         RequestTimeout = TimeSpan.FromSeconds(60),
         ConsistencyLevel = ConsistencyLevel.Session,
-        UseSystemTextJsonSerializerWithOptions = jsOptions
+        UseSystemTextJsonSerializerWithOptions = jsOptions,
+        
     };
 
     string? endpoint = configuration["CosmosDbAccountEndpoint"] ?? throw new InvalidOperationException("CosmosDbAccountEndpoint is missing from configuration");

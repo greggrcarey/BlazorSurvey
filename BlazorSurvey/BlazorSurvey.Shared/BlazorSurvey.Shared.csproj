@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="LivePollSerializer.cs" />
+    <Compile Remove="SurveyBaseSerializer.cs" />
+    <Compile Remove="SurveySerializer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="System.Text.Json" />
   </ItemGroup>
 

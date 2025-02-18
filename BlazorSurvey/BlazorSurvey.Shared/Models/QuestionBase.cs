@@ -15,3 +15,17 @@ public abstract record QuestionBase
     public DateTimeOffset Updated { get; set; }
     public int OrderBy { get; set; } = 0;
 }
+
+
+[JsonSourceGenerationOptions(
+       DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        //Web defaults
+        PropertyNameCaseInsensitive = true,
+        PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
+        NumberHandling = JsonNumberHandling.AllowReadingFromString)]
+[JsonSerializable(typeof(DateQuestion))]
+[JsonSerializable(typeof(QuestionBase))]
+public partial class QuestionBaseSerializer : JsonSerializerContext
+{
+
+}

@@ -1,5 +1,6 @@
 ﻿using BlazorSurvey.Shared.Validation;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace BlazorSurvey.Shared.Models;
@@ -34,5 +35,19 @@ public record SurveyBase
                + $"IsActive: {IsActive}, "
                + $"Questions: {Questions.ToArray()}";
     }
+
+}
+
+[JsonSourceGenerationOptions(
+       DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        //Web defaults
+        PropertyNameCaseInsensitive = true,
+        PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
+        NumberHandling = JsonNumberHandling.AllowReadingFromString)]
+[JsonSerializable(typeof(LivePoll))]
+[JsonSerializable(typeof(Survey))]
+[JsonSerializable(typeof(SurveyBase))]
+public partial class SurveyBaseSerializer : JsonSerializerContext
+{
 
 }

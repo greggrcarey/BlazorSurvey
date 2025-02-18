@@ -27,5 +27,12 @@
   <ItemGroup>
     <Folder Include="Scritps\" />
   </ItemGroup>
+	<PropertyGroup>
+		<RunAOTCompilation>true</RunAOTCompilation>
+		<WasmStripILAfterAOT>true</WasmStripILAfterAOT>
+		<PublishTrimmed>true</PublishTrimmed>
+		<TrimMode>full</TrimMode>
+		<JsonSerializerIsReflectionEnabledByDefault>false</JsonSerializerIsReflectionEnabledByDefault>
+	</PropertyGroup>
 
 </Project>
