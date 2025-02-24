@@ -27,23 +27,23 @@ else
             <PropertyColumn Property="x => x.Created" Format="g" />
             <PropertyColumn Property="x => x.GetType().Name" />
             <TemplateColumn>
-                <CellTemplate>
+                <CellTemplate Context="collection">
                     <MudStack Row>
-                        <MudButton Size="@Size.Small" Variant="@Variant.Filled" Color="@Color.Primary" @onclick="_ => CopySurveyLink(context.Item.Id)">Copy Link</MudButton>
+                        <MudButton Size="@Size.Small" Variant="@Variant.Filled" Color="@Color.Primary" @onclick="_ => CopySurveyLink(collection.Item.Id)">Copy Link</MudButton>
                     </MudStack>
                 </CellTemplate>
             </TemplateColumn>
             <TemplateColumn>
-                <CellTemplate>
+                    <CellTemplate Context="collection">
                     <MudStack Row>
-                        <MudButton Size="@Size.Small" Variant="@Variant.Filled" Color="@Color.Primary" @onclick="_ => NavigateToResults(context.Item.Id)">Results</MudButton>
+                        <MudButton Size="@Size.Small" Variant="@Variant.Filled" Color="@Color.Primary" @onclick="_ => NavigateToResults(collection.Item.Id)">Results</MudButton>
                     </MudStack>
                 </CellTemplate>
             </TemplateColumn>
             <TemplateColumn>
-                <CellTemplate>
+                    <CellTemplate Context="collection">
                     <MudStack Row>
-                        <MudButton Size="@Size.Small" Variant="@Variant.Filled" Color="@Color.Primary" @onclick="_ => DeleteSurvey(context.Item)">Delete Survey</MudButton>
+                        <MudButton Size="@Size.Small" Variant="@Variant.Filled" Color="@Color.Primary" @onclick="_ => DeleteSurvey(collection.Item)">Delete Survey</MudButton>
                     </MudStack>
                 </CellTemplate>
             </TemplateColumn>
