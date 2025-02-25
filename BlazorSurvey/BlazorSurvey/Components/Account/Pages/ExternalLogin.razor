@@ -4,9 +4,6 @@
 @using System.Security.Claims
 @using System.Text
 @using System.Text.Encodings.Web
-@using BlazorSurvey.Components.Account.Shared
-@using Microsoft.AspNetCore.Components.Forms
-@using Microsoft.AspNetCore.Components.Web
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
 @using BlazorSurvey.Data
@@ -24,9 +21,9 @@
 <StatusMessage Message="@message" />
 <h1>Register</h1>
 <h2>Associate your @ProviderDisplayName account.</h2>
-<hr />
+<MudDivider />
 
-<div  class="alert alert-info">
+<div class="alert alert-info">
     You've successfully authenticated with <strong>@ProviderDisplayName</strong>.
     Please enter an email address for this site below and click the Register button to finish
     logging in.
@@ -108,8 +105,8 @@
 
         // Sign in the user with this external login provider if the user already has a login.
         var result = await SignInManager.ExternalLoginSignInAsync(
-            externalLoginInfo.LoginProvider,
-            externalLoginInfo.ProviderKey,
+            externalLoginInfo!.LoginProvider,
+            externalLoginInfo!.ProviderKey,
             isPersistent: false,
             bypassTwoFactor: true);
 
