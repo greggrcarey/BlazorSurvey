@@ -67,6 +67,9 @@
             case "dateResponse":
                 processDateResponse(responseObject, resultObject);
                 break;
+            case "textResponse":
+                processTextResponse(responseObject, resultObject);
+                break;
             default:
                 throw new Error(`Unhandled response type: ${responseObject.$responseType}`);
         }
@@ -75,5 +78,9 @@
     // Handle dateResponse types
     function processDateResponse(responseObject, resultObject) {
         resultObject.results.push(responseObject.calendarDateResponse);
+    }
+    // Handle textResponse types
+    function processTextResponse(responseObject, resultObject) {
+        resultObject.results.push(responseObject.textQuestionResponse);
     }
 }

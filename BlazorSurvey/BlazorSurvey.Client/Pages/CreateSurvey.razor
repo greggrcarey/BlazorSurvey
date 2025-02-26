@@ -79,6 +79,12 @@ else
                 Type = typeof(DateComponent),
                 Name = "Date Question",
                 Parameters = { } //use this for context specific parameters i.e. filling the question out, viewing/ read only, set up diffent components
+            },
+            [nameof(TextComponent)] = new ComponentMetaData()
+            {
+                Type = typeof(TextComponent),
+                Name = "Text Question",
+                Parameters = { } 
             }
         };
 
@@ -87,9 +93,15 @@ else
         {
             [nameof(DateQuestion)] = new ComponentMetaData()
             {
-                Type = typeof(ReadOnlyDateComponent),
+                Type = typeof(DateReadOnlyComponent),
                 Name = "Date Question",
                 Parameters = { } //use this for context specific parameters i.e. filling the question out, viewing/ read only, set up diffent components
+            },
+            [nameof(TextQuestion)] = new ComponentMetaData()
+            {
+                Type = typeof(TextReadOnlyComponent),
+                Name = "Text Question",
+                Parameters = { }
             }
         };
 

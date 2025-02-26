@@ -1,0 +1,27 @@
+﻿@using MudBlazor
+@using BlazorSurvey.Shared.Models
+@inject SurveyState SurveyState
+<h3>Add a Text Question</h3>
+
+
+@if (SurveyState.Question is not null)
+{
+    <MudForm>
+        <MudTextField T="string" Label="Add your question here" Required="true" RequiredError="You must ask a question" @bind-Value="SurveyState.Question.Title" />
+        <MudButton @onclick="AddQuestion">Submit</MudButton>
+    </MudForm>
+}
+
+@code {
+
+    protected override void OnInitialized()
+    {
+        SurveyState.CreateQuestion(new TextQuestion());
+        base.OnInitialized();
+    }
+
+    private void AddQuestion()
+    {
+        SurveyState.AddQuestion();
+    }
+}

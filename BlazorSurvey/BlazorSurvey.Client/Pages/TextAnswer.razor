@@ -1,0 +1,45 @@
+﻿@using MudBlazor
+@inject SurveyState SurveyState
+<h3>TextAnswer</h3>
+
+@if (QuestionData is not null)
+{
+    <MudCard>
+        <MudCardHeader>
+            <MudText Typo="Typo.h6">Text Question</MudText>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudText>@QuestionData.Title</MudText>
+            <br />
+            <MudTextField T="string" Immediate="true" AutoGrow Clearable Value="_textResponse.TextQuestionResponse" ValueChanged="@(newValue => UpdateTextResponse(newValue))"  HelperText="Answer here"></MudTextField>
+
+        </MudCardContent>
+    </MudCard>
+}
+
+@code {
+
+    [Parameter] public TextQuestion? QuestionData { get; set; }
+
+    private TextResponse _textResponse { get; set; } = new();
+
+    protected override void OnParametersSet()
+    {
+        if (QuestionData is not null)
+        {
+            TextResponse textObject = new()
+                {
+                    QuestionId = QuestionData.Id,
+                    QuestionTitle = QuestionData.Title
+                };
+            _textResponse = textObject;
+        }
+        base.OnParametersSet();
+    }
+    //Try to remove some of the code binding in MudTextField to see if it works different or breaks. Try to understand what is going on.
+    private void UpdateTextResponse(string newValue)
+    {
+        _textResponse.TextQuestionResponse = newValue;
+        SurveyState.InsertOrUpdateResponse(_textResponse);
+    }
+}

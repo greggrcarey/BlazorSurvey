@@ -7,4 +7,4 @@ using System.Threading.Tasks;
 
 namespace BlazorSurvey.Shared.Models;
 
-public record SurveyResponseRollup(string Title, List<SurveyResult> Results);
+public record SurveyResponseRollup(string SurveyTitle, List<SurveyResult> Results);

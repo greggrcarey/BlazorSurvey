@@ -5,9 +5,9 @@
 
 <h3>Survey Results</h3>
 
-@if (SurveyState.SurveyResponseRollup is not null)
+@if (SurveyState.SurveyResponseRollup is not null && SurveyState.SurveyResponseRollup.SurveyTitle is not null)
 {
-    <MudText Typo="Typo.h1">Results for @SurveyState.SurveyResponseRollup.Title</MudText>
+    <MudText Typo="Typo.h1">Results for @SurveyState.SurveyResponseRollup.SurveyTitle</MudText>
 }
 
 @if (SurveyState.SurveyResponseRollup is not null &&
@@ -37,6 +37,12 @@ else
             {
                 Type = typeof(DateResult),
                 Name = "Date Result",
+                Parameters = { }
+            },
+            ["textResponse"] = new ComponentMetaData()
+            {
+                Type = typeof(TextResult),
+                Name = "Text Result",
                 Parameters = { }
             }
         };

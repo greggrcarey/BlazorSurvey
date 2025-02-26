@@ -3,7 +3,7 @@
 namespace BlazorSurvey.Shared.Models;
 
 [JsonDerivedType(typeof(DateResponse), typeDiscriminator: "dateResponse")]
-public class DateResponse : ResponseBase
+public record DateResponse : ResponseBase
 {
     public DateOnly CalendarDateResponse { get; set; }
 }

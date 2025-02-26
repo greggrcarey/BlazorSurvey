@@ -2,7 +2,7 @@
 using System.Text.Json.Serialization;
 
 namespace BlazorSurvey.Shared.Models;
-
+[JsonDerivedType(typeof(TextQuestion), typeDiscriminator: "textQuestion")]
 [JsonDerivedType(typeof(DateQuestion), typeDiscriminator: "dateQuestion")]
 public abstract record QuestionBase
 {
