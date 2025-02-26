@@ -4,7 +4,8 @@ using System.Text.Json.Serialization;
 namespace BlazorSurvey.Shared.Models;
 [JsonDerivedType(typeof(TextQuestion), typeDiscriminator: "textQuestion")]
 [JsonDerivedType(typeof(DateQuestion), typeDiscriminator: "dateQuestion")]
-public abstract record QuestionBase
+[JsonDerivedType(typeof(RatingQuestion), typeDiscriminator: "ratingQuestion")]
+public abstract class QuestionBase
 {
     [JsonPropertyName("id")]
     public Guid Id { get; set; } = Guid.NewGuid();

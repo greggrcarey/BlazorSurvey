@@ -1,0 +1,42 @@
+﻿@using MudBlazor
+@inject SurveyState SurveyState
+
+@if (QuestionData is not null)
+{
+    <MudCard>
+        <MudCardHeader Class="flex-row">
+            <MudText Typo="Typo.h6">Rating Question</MudText>
+            <MudSpacer />
+            <MudCardActions><MudButton @onclick="RemoveQuestion" cursor-default aria-label="remove">X</MudButton></MudCardActions>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudText>@QuestionData.Title</MudText>
+            <MudSpacer/>
+            <MudGrid>
+                @foreach(var rating in Ratings)
+                {
+                    <MudRadio T="bool" Disabled="true" Dense="true" Label="@rating.ToString()" LabelPlacement="@(Placement.Top)"></MudRadio>
+                }
+            </MudGrid> 
+        </MudCardContent>
+    </MudCard>
+}
+
+@code {
+    [Parameter] public RatingQuestion? QuestionData { get; set; }
+
+    private IEnumerable<int> Ratings = [];
+
+    protected override void OnParametersSet()
+    {
+        if(QuestionData is not null)
+        {
+            Ratings = Enumerable.Range(0, QuestionData.ChoiceRange);
+        }
+    }
+
+    private void RemoveQuestion()
+    {
+        if (QuestionData is not null) SurveyState.RemoveQuestion(QuestionData);
+    }
+}

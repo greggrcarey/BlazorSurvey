@@ -1,0 +1,53 @@
+﻿@using MudBlazor
+@using BlazorSurvey.Shared.Models
+@inject SurveyState SurveyState
+<h3>Add a Rating Question</h3>
+
+@if (SurveyState.Question is not null)
+{
+    <MudForm>
+        <MudTextField T="string" Label="Add your question here" Required="true" RequiredError="You must ask a question" @bind-Value="SurveyState.Question.Title" />
+        <MudSpacer/>
+        <MudText>How many choices do you want?</MudText>
+        <MudButton OnClick="DecreaseCount">-</MudButton>
+        <MudButton OnClick="IncreaseCount">+</MudButton>
+        <MudSpacer />
+        <MudGrid>
+            @foreach (var rating in Rating)
+            {
+                <MudRadio T="bool" Disabled="true" Dense="true" Label="@rating.ToString()" LabelPlacement="@(Placement.Top)"></MudRadio>
+            }
+        </MudGrid>
+        <MudButton Onclick="AddQuestion">Submit</MudButton>
+
+    </MudForm>
+}
+
+@code {
+    private RatingQuestion RatingQuestion = new RatingQuestion
+        {
+            ChoiceRange = 0
+        };
+    private IEnumerable<int> Rating => Enumerable.Range(0, RatingQuestion.ChoiceRange);
+
+    protected override void OnInitialized()
+    {
+        SurveyState.CreateQuestion(RatingQuestion);
+        base.OnInitialized();
+    }
+
+    private void DecreaseCount()
+    {
+        RatingQuestion.ChoiceRange--;
+        SurveyState.UpdateQuestion(RatingQuestion);
+    }
+    private void IncreaseCount()
+    {
+        RatingQuestion.ChoiceRange++;
+        SurveyState.UpdateQuestion(RatingQuestion);
+    }
+    private void AddQuestion()
+    {
+        SurveyState.AddQuestion();
+    }
+}

@@ -3,7 +3,7 @@
 namespace BlazorSurvey.Shared.Models;
 
 [JsonDerivedType(typeof(DateQuestion), typeDiscriminator: "dateQuestion")]
-public record DateQuestion : QuestionBase
+public class DateQuestion : QuestionBase
 {
 
 }

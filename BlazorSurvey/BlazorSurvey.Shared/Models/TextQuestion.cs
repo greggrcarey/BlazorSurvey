@@ -2,6 +2,6 @@
 
 namespace BlazorSurvey.Shared.Models;
 [JsonDerivedType(typeof(TextQuestion), typeDiscriminator: "textQuestion")]
-public record TextQuestion : QuestionBase
+public class TextQuestion : QuestionBase
 {
 }
