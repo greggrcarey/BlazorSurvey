@@ -1,4 +1,4 @@
-﻿@using MudBlazor
+﻿ @using MudBlazor
 @inject SurveyState SurveyState
 <h3>DateAnswer</h3>
 
@@ -20,7 +20,7 @@
 
     [Parameter] public DateQuestion? QuestionData { get; set; }
 
-    private DateResponse dateResponse { get; set; } = new();
+    private DateResponse _dateResponse { get; set; } = new();
 
     protected override void OnParametersSet()
     {
@@ -31,17 +31,17 @@
                     QuestionId = QuestionData.Id,
                     QuestionTitle = QuestionData.Title
                 };
-            this.dateResponse = dateObject;
+            this._dateResponse = dateObject;
         }
         base.OnParametersSet();
     }
 
     private void OnDateChanged(DateTime? newValue)
     {
-        if (newValue.HasValue && QuestionData is not null && dateResponse is not null)
+        if (newValue.HasValue && QuestionData is not null && _dateResponse is not null)
         {
-            dateResponse.CalendarDateResponse = DateOnly.FromDateTime(newValue.Value);
-            SurveyState.InsertOrUpdateResponse(dateResponse);
+            _dateResponse.CalendarDateResponse = DateOnly.FromDateTime(newValue.Value);
+            SurveyState.InsertOrUpdateResponse(_dateResponse);
         }
     }
 }

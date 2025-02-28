@@ -1,42 +1,48 @@
 ﻿@using MudBlazor
+@using BlazorSurvey.Shared.Models
 @inject SurveyState SurveyState
 
 @if (QuestionData is not null)
 {
     <MudCard>
         <MudCardHeader Class="flex-row">
-            <MudText Typo="Typo.h6">Rating Question</MudText>
-            <MudSpacer />
+                <MudText Typo="Typo.h6">Rating Question</MudText>
+                <MudSpacer/>
             <MudCardActions><MudButton @onclick="RemoveQuestion" cursor-default aria-label="remove">X</MudButton></MudCardActions>
         </MudCardHeader>
         <MudCardContent>
             <MudText>@QuestionData.Title</MudText>
-            <MudSpacer/>
-            <MudGrid>
-                @foreach(var rating in Ratings)
+            <MudGrid Justify="Justify.SpaceEvenly">
+                @foreach (var rating in Rating)
                 {
-                    <MudRadio T="bool" Disabled="true" Dense="true" Label="@rating.ToString()" LabelPlacement="@(Placement.Top)"></MudRadio>
+                    <MudItem>
+                        <MudRadio T="bool" Disabled="true" Dense="true" Label="@rating.ToString()" LabelPlacement="@(Placement.Top)"></MudRadio>
+                    </MudItem>
                 }
-            </MudGrid> 
+            </MudGrid>
         </MudCardContent>
     </MudCard>
 }
 
 @code {
-    [Parameter] public RatingQuestion? QuestionData { get; set; }
+    [Parameter ] public RatingQuestion? QuestionData { get; set; }
 
-    private IEnumerable<int> Ratings = [];
+    public required IEnumerable<int> Rating { get; set; }
 
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
         if(QuestionData is not null)
         {
-            Ratings = Enumerable.Range(0, QuestionData.ChoiceRange);
+            Rating = Enumerable.Range(1, QuestionData.ChoiceRange);
         }
+
+        await base.OnParametersSetAsync();
     }
+
 
     private void RemoveQuestion()
     {
         if (QuestionData is not null) SurveyState.RemoveQuestion(QuestionData);
     }
+
 }

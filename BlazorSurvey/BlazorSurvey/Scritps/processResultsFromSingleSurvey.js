@@ -70,6 +70,9 @@
             case "textResponse":
                 processTextResponse(responseObject, resultObject);
                 break;
+            case "ratingResponse":
+                processRatingResponse(responseObject, resultObject);
+                break;
             default:
                 throw new Error(`Unhandled response type: ${responseObject.$responseType}`);
         }
@@ -82,5 +85,11 @@
     // Handle textResponse types
     function processTextResponse(responseObject, resultObject) {
         resultObject.results.push(responseObject.textQuestionResponse);
+    }
+    function processRatingResponse(responseObject, resultObject) {
+        //array [choice, count of choices ]
+        if (!responseObject.ratingResponse) {
+
+        }
     }
 }

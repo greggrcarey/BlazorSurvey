@@ -4,7 +4,7 @@
 @inject NavigationManager NavigationManager
 @inject PersistentComponentState ApplicationState
 @implements IDisposable
-
+<PageTitle>@SurveyState.CurrentSurvey.Title Survey</PageTitle>
 <h3>Take Survey</h3>
 <RenderInformation />
 
@@ -14,13 +14,15 @@
 {
     <p>...Loading!</p>
 }
-else if(!string.IsNullOrEmpty(_errorMessage)){
+else if (!string.IsNullOrEmpty(_errorMessage))
+{
     <p>@_errorMessage</p>
 }
-else{
+else
+{
     <MudText Typo="Typo.h1">@SurveyState.CurrentSurvey.Title</MudText>
 
-    @foreach(var question in SurveyState.CurrentSurvey.Questions)
+    @foreach (var question in SurveyState.CurrentSurvey.Questions)
     {
         var answerMetaData = AnswerComponentMetaData[question.GetType().Name];
         answerMetaData.Parameters.Add("QuestionData", question);
@@ -55,6 +57,12 @@ else{
                     Type = typeof(TextAnswer),
                     Name = "Text Question",
                     Parameters = { }
+                },
+                [nameof(RatingQuestion)] = new ComponentMetaData()
+                {
+                    Type = typeof(RatingAnswer),
+                    Name = "Rating Question",
+                    Parameters = { }
                 }
             };
 
@@ -62,7 +70,7 @@ else{
     {
         persistingSubscription = ApplicationState.RegisterOnPersisting(PersistData);
 
-        if(!ApplicationState.TryTakeFromJson<Survey>(nameof(SurveyState.CurrentSurvey), out var restoredData))
+        if (!ApplicationState.TryTakeFromJson<Survey>(nameof(SurveyState.CurrentSurvey), out var restoredData))
         {
             await GetSurvey();
         }

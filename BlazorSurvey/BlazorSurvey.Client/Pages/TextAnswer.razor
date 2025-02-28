@@ -11,7 +11,13 @@
         <MudCardContent>
             <MudText>@QuestionData.Title</MudText>
             <br />
-            <MudTextField T="string" Immediate="true" AutoGrow Clearable Value="_textResponse.TextQuestionResponse" ValueChanged="@(newValue => UpdateTextResponse(newValue))"  HelperText="Answer here"></MudTextField>
+            <MudTextField T="string" Immediate="true" 
+                AutoGrow 
+                Clearable 
+                Value="_textResponse.TextQuestionResponse" 
+                ValueChanged="@(newValue => UpdateTextResponse(newValue))"  
+                HelperText="Answer here">
+            </MudTextField>
 
         </MudCardContent>
     </MudCard>

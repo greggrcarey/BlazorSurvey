@@ -6,29 +6,34 @@
 @if (SurveyState.Question is not null)
 {
     <MudForm>
-        <MudTextField T="string" Label="Add your question here" Required="true" RequiredError="You must ask a question" @bind-Value="SurveyState.Question.Title" />
-        <MudSpacer/>
-        <MudText>How many choices do you want?</MudText>
-        <MudButton OnClick="DecreaseCount">-</MudButton>
-        <MudButton OnClick="IncreaseCount">+</MudButton>
-        <MudSpacer />
-        <MudGrid>
-            @foreach (var rating in Rating)
-            {
-                <MudRadio T="bool" Disabled="true" Dense="true" Label="@rating.ToString()" LabelPlacement="@(Placement.Top)"></MudRadio>
-            }
-        </MudGrid>
-        <MudButton Onclick="AddQuestion">Submit</MudButton>
+        <MudGrid Spacing="9" Justify="Justify.Center">
+            <MudItem xs="12" Class=""><MudTextField T="string" Label="Add your question here" Required="true" RequiredError="You must ask a question" @bind-Value="SurveyState.Question.Title" /></MudItem>
+            <MudSpacer />
+            <MudItem><MudText>How many Rating levels do you want?</MudText><MudText Color="Color.Info">Maximum 15</MudText></MudItem>
 
+            <MudGrid Justify="Justify.Center" >
+                <MudItem><MudButton OnClick="DecreaseCount">-</MudButton></MudItem>
+                <MudItem><MudText>@RatingQuestion.ChoiceRange</MudText>  </MudItem>
+                <MudItem><MudButton OnClick="IncreaseCount">+</MudButton></MudItem>
+            </MudGrid>
+            <MudSpacer />
+            <MudGrid Justify="Justify.SpaceEvenly">
+                @foreach (var rating in Rating)
+                {
+                    <MudItem>
+                        <MudRadio T="bool" Disabled="true" Dense="true" Label="@rating.ToString()" LabelPlacement="@(Placement.Top)"></MudRadio>
+                    </MudItem>
+                }
+            </MudGrid>
+            <MudButton Onclick="AddQuestion">Submit</MudButton>
+        </MudGrid>
     </MudForm>
 }
 
 @code {
-    private RatingQuestion RatingQuestion = new RatingQuestion
-        {
-            ChoiceRange = 0
-        };
-    private IEnumerable<int> Rating => Enumerable.Range(0, RatingQuestion.ChoiceRange);
+    private RatingQuestion RatingQuestion = new RatingQuestion();
+
+    private IEnumerable<int> Rating => Enumerable.Range(1, RatingQuestion.ChoiceRange);
 
     protected override void OnInitialized()
     {
@@ -38,12 +43,12 @@
 
     private void DecreaseCount()
     {
-        RatingQuestion.ChoiceRange--;
+        RatingQuestion.ChoiceRange = RatingQuestion.ChoiceRange > 1 ? RatingQuestion.ChoiceRange - 1 : 15;
         SurveyState.UpdateQuestion(RatingQuestion);
     }
     private void IncreaseCount()
     {
-        RatingQuestion.ChoiceRange++;
+        RatingQuestion.ChoiceRange = RatingQuestion.ChoiceRange < 15 ? RatingQuestion.ChoiceRange + 1 : 1;
         SurveyState.UpdateQuestion(RatingQuestion);
     }
     private void AddQuestion()

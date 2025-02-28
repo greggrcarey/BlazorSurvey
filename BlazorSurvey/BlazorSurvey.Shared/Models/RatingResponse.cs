@@ -2,4 +2,8 @@
 
 namespace BlazorSurvey.Shared.Models;
 [JsonDerivedType(typeof(RatingResponse), typeDiscriminator: "ratingResponse")]
-public record RatingResponse(int Choice) : ResponseBase { }
+public record RatingResponse : ResponseBase 
+{
+    public int Choice { get; set; }
+    public int ChoiceRange { get; set; }
+} 
