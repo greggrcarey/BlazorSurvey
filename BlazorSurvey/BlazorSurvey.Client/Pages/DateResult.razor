@@ -1,13 +1,13 @@
 ﻿<h3>Date Responses</h3>
 
-@if (ResultData is not null)
+@if (ResultData is not null && ResultData.DateResults.Length > 0)
 {
     <MudCard>
         <MudCardHeader>
             <MudText Typo="Typo.h6">@ResultData.Title</MudText>
         </MudCardHeader>
         <MudCardContent>
-            @foreach (var date in ResultData.Results)
+            @foreach (var date in ResultData.DateResults)
             {
                 <MudItem>@date</MudItem>
             }

@@ -37,7 +37,6 @@
                         title: response.questionTitle,
                         responseType: response.$responseType,
                         questionId: response.questionId,
-                        results: []
                     };
                     results.push(resultObject);
                 }
@@ -65,12 +64,22 @@
     function processResult(responseObject, resultObject) {
         switch (responseObject.$responseType) {
             case "dateResponse":
+                if (!resultObject.dateResults) {
+                    resultObject.dateResults = [];
+                }
                 processDateResponse(responseObject, resultObject);
                 break;
             case "textResponse":
+                if (!resultObject.textResults) {
+                    resultObject.textResults = [];
+                }
                 processTextResponse(responseObject, resultObject);
                 break;
             case "ratingResponse":
+                if (!resultObject.ratingResults) {
+                    resultObject.ratingResults = new Array(responseObject.choiceRange).fill(0);
+                }
+                console.log("ratingResponse switch")
                 processRatingResponse(responseObject, resultObject);
                 break;
             default:
@@ -80,16 +89,13 @@
 
     // Handle dateResponse types
     function processDateResponse(responseObject, resultObject) {
-        resultObject.results.push(responseObject.calendarDateResponse);
+        resultObject.dateResults.push(responseObject.calendarDateResponse);
     }
     // Handle textResponse types
     function processTextResponse(responseObject, resultObject) {
-        resultObject.results.push(responseObject.textQuestionResponse);
+        resultObject.textResults.push(responseObject.textQuestionResponse);
     }
     function processRatingResponse(responseObject, resultObject) {
-        //array [choice, count of choices ]
-        if (!responseObject.ratingResponse) {
-
-        }
+        resultObject.ratingResults[responseObject.choice - 1]++;
     }
 }

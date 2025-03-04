@@ -2,10 +2,12 @@
 {
     public class SurveyResult
     {
-        public Guid ResponseId { get; set; } = Guid.Empty;
-        public string Title { get; set; } = string.Empty;
-        public string ResponseType { get; set; } = string.Empty;
-        public Guid QuestionId { get; set; } = Guid.Empty;
-        public string[] Results { get; set; } = [];
+        public required Guid ResponseId { get; set; }
+        public required string Title { get; set; }
+        public required string ResponseType { get; set; }
+        public required Guid QuestionId { get; set; }
+        public string[] TextResults { get; set; } = [];
+        public string[] DateResults { get; set; } = [];
+        public int[] RatingResults { get; set; } = [];
     }
 }

@@ -12,8 +12,8 @@
 }
 
 @if (SurveyState.SurveyResponseRollup is not null &&
-     SurveyState.SurveyResponseRollup.Results is not null &&
-     SurveyState.SurveyResponseRollup.Results.Count > 0)
+    SurveyState.SurveyResponseRollup.Results is not null &&
+    SurveyState.SurveyResponseRollup.Results.Count > 0)
 {
     @foreach (var result in SurveyState.SurveyResponseRollup.Results)
     {
@@ -44,6 +44,12 @@ else
             {
                 Type = typeof(TextResult),
                 Name = "Text Result",
+                Parameters = { }
+            },
+            ["ratingResponse"] = new ComponentMetaData()
+            {
+                Type = typeof(RatingResult),
+                Name = "Rating Result",
                 Parameters = { }
             }
         };
