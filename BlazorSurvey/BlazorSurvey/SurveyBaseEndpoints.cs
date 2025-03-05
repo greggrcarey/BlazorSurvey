@@ -26,6 +26,7 @@ public class SurveyBaseModule
         group.MapPut("", PutSurvey).WithName("PutSurvey");
         group.MapDelete("/{id}", DeleteSurvey).WithName("DeleteSurvey");
         group.MapGet("/response/{id}", GetSurveyResponseById).WithName("GetSurveyResponseById");
+        group.MapPost("/{id}/responses", PatchSurveyAtResponses).WithName("PostSurveyAtResponses");
 
     }
 
@@ -42,7 +43,7 @@ public class SurveyBaseModule
 
     }
 
-    public async Task<Results<Ok<SurveyBase>, NotFound>> GetSurveyById(
+    public async Task<Results<Ok<SurveyBaseTakeSurveyDto>, NotFound>> GetSurveyById(
         Guid id)
     {
         /*GET: The HTTP GET method is used to read(or retrieve) a representation of a resource.
@@ -120,6 +121,13 @@ public class SurveyBaseModule
             _ => TypedResults.Ok(result)
         };
 
+    }
+
+    public async Task<NoContent> PatchSurveyAtResponses([FromBody] SurveyBase surveyBase)
+    {
+        //TO DO: make this make sense
+        await _cosmosDbService.PatchSurveyAtResponses(surveyBase);
+        return TypedResults.NoContent();
     }
 
 

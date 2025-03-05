@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 namespace BlazorSurvey.Shared.Models;
 [JsonDerivedType(typeof(LivePoll), typeDiscriminator: "livePoll")]
 [JsonDerivedType(typeof(Survey), typeDiscriminator: "survey")]
-public record SurveyBase
+public abstract record SurveyBase
 {
     [JsonPropertyName("id")]
     public Guid Id { get; set; } = Guid.NewGuid();
@@ -35,4 +35,8 @@ public record SurveyBase
                + $"Questions: {Questions.ToArray()}";
     }
 
+
+
 }
+
+public record SurveyBaseTakeSurveyDto(Guid Id, string Title, List<QuestionBase> Questions);

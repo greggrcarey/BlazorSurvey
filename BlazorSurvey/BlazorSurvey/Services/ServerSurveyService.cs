@@ -17,7 +17,7 @@ public class ServerSurveyService : ISurveyService
     {
         throw new NotImplementedException();
     }
-    public async Task<SurveyBase?> GetSurveyBaseAsync(Guid surveyId)
+    public async Task<SurveyBaseTakeSurveyDto?> GetSurveyBaseAsync(Guid surveyId)
     {
         return await _cosmosDbService.GetSurveyBaseAsync(surveyId);
     }
@@ -35,6 +35,11 @@ public class ServerSurveyService : ISurveyService
     public Task PostSurveyAsync(SurveyBase surveyModel)
     {
         return _cosmosDbService.UpsertSurveyBaseAsync(surveyModel);
+    }
+
+    public Task PostSurveyResponses(SurveyBase surveyModel)
+    {
+        return _cosmosDbService.PatchSurveyAtResponses(surveyModel);
     }
 
     public Task PutSurveyAsync(SurveyBase surveyModel)

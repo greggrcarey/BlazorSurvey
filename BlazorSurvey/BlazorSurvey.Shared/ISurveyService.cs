@@ -7,8 +7,9 @@ public interface ISurveyService
     List<LivePoll> GetLivePolls();
     Task SaveSurvey(SurveyBase surveyModel);
     Task PostSurveyAsync(SurveyBase surveyModel);
-    Task<SurveyBase?> GetSurveyBaseAsync(Guid surveyBaseId);
+    Task<SurveyBaseTakeSurveyDto?> GetSurveyBaseAsync(Guid surveyBaseId);
     Task PutSurveyAsync(SurveyBase surveyModel);
+    Task PostSurveyResponses(SurveyBase surveyModel);
     Task<SurveyResponseRollup?> GetSurveyResultsAsync(Guid surveyId);
     Task DeleteSurvey(Guid SurveyId);
 }

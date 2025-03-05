@@ -5,3 +5,8 @@ namespace BlazorSurvey.Shared.Models;
 public record Survey : SurveyBase
 {
 }
+
+public record SurveyTakeSurveyDto(Guid Id,
+                                  string Title,
+                                  List<QuestionBase> Questions)
+    : SurveyBaseTakeSurveyDto(Id, Title, Questions);

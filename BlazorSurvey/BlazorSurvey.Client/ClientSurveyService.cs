@@ -8,9 +8,9 @@ internal class ClientSurveyService(HttpClient httpClient) : ISurveyService
     {
         throw new NotImplementedException();
     }
-    public async Task<SurveyBase?> GetSurveyBaseAsync(Guid surveyId)
+    public async Task<SurveyBaseTakeSurveyDto?> GetSurveyBaseAsync(Guid surveyId)
     {
-        return await httpClient.GetFromJsonAsync<SurveyBase>($"/api/survey/{surveyId}");
+        return await httpClient.GetFromJsonAsync<SurveyBaseTakeSurveyDto>($"/api/survey/{surveyId}");
     }
 
     public async Task<SurveyResponseRollup?> GetSurveyResultsAsync(Guid surveyId)
@@ -50,5 +50,10 @@ internal class ClientSurveyService(HttpClient httpClient) : ISurveyService
     public Task SaveSurvey(SurveyBase surveyModel)
     {
         throw new NotImplementedException();
+    }
+
+    public async Task PostSurveyResponses(SurveyBase surveyModel)
+    {
+        _ = await httpClient.PostAsJsonAsync<SurveyBase>($"/api/survey/{surveyModel.Id}/responses", surveyModel);
     }
 }

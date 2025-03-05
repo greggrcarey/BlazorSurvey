@@ -8,7 +8,7 @@ namespace BlazorSurvey.Shared;
  */
 public class SurveyState
 {
-    public SurveyBase CurrentSurvey { get; private set; } = new SurveyBase();
+    public SurveyBase CurrentSurvey { get; private set; } = new Survey();
     public SurveyResponseRollup? SurveyResponseRollup { get; private set; }
     public QuestionBase? Question { get; set; }
 
@@ -16,6 +16,7 @@ public class SurveyState
 
     public void InitializeSurvey()
     {
+        CurrentSurvey = new Survey();
         CurrentSurvey.Title = "Test title from SurveyState";
         CurrentSurvey.Created = DateTimeOffset.Now;
         NotifyStateChanged();
@@ -25,6 +26,14 @@ public class SurveyState
     {
         //Should I pass the survey here? 
         CurrentSurvey = surveyModel;
+    }
+
+    public void InitilaizeSurvey(SurveyBaseTakeSurveyDto surveyDto)
+    {
+        CurrentSurvey.Id = surveyDto.Id;
+        CurrentSurvey.Title = surveyDto.Title;
+        CurrentSurvey.Questions = surveyDto.Questions;
+        CurrentSurvey.Responses = [];
     }
 
     public void CreateQuestion(QuestionBase question)
@@ -70,7 +79,7 @@ public class SurveyState
 
     public void ResetSurvey()
     {
-        CurrentSurvey = new SurveyBase();
+        CurrentSurvey = new Survey();
         Question = null;
         NotifyStateChanged();
     }

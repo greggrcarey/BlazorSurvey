@@ -93,7 +93,7 @@ else
 
         if (surveyToTake is not null)
         {
-            SurveyState.InitializeSurvey(surveyToTake);
+            SurveyState.InitilaizeSurvey(surveyToTake);
         }
         else
         {
@@ -109,7 +109,7 @@ else
 
     private async Task HandleSaveSurvey(MouseEventArgs e)
     {
-        await SurveyService.PutSurveyAsync(SurveyState.CurrentSurvey);
+        await SurveyService.PostSurveyResponses(SurveyState.CurrentSurvey);
         SurveyState.ResetSurvey();
         NavigationManager.NavigateTo("/survey-complete");
     }

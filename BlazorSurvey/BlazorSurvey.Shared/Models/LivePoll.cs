@@ -1,4 +1,5 @@
 ﻿using BlazorSurvey.Shared.Validation;
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace BlazorSurvey.Shared.Models;
@@ -11,3 +12,8 @@ public record LivePoll : SurveyBase
     public override string ToString() => $"PollExpiresAt: {PollExpiresAt}, " + base.ToString();
 
 }
+
+public record LivePollTakeSurveyDto(DateTimeOffset PollExpiresAt,
+                                    Guid Id,
+                                    string Title,
+                                    List<QuestionBase> Questions) : SurveyBaseTakeSurveyDto(Id, Title,  Questions);

@@ -1,4 +1,5 @@
-﻿using BlazorSurvey.Shared.Models;
+﻿using BlazorSurvey.Shared.Dtos;
+using BlazorSurvey.Shared.Models;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Caching.Memory;
 
@@ -9,6 +10,9 @@ public class CosmosDbService
     private readonly CosmosClient _client;
     private readonly ILogger _logger;
     private readonly IMemoryCache _memoryCache;
+    private readonly string surveyDbName = "SurveyDb";
+    private readonly string surveyContainerName = "Survey";
+    private readonly string storedProcedureId = "processResultsFromSingleSurvey";
     private readonly MemoryCacheEntryOptions CacheEntryOptions = new MemoryCacheEntryOptions
     {
         Size = 1024 * 2,
@@ -22,14 +26,9 @@ public class CosmosDbService
         _memoryCache = memoryCache;
     }
 
-
     //Need to add resiliency
     //https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/conceptual-resilient-sdk-applications
     //https://learn.microsoft.com/en-us/dotnet/core/resilience/?tabs=dotnet-cli
-
-    private readonly string surveyDbName = "SurveyDb";
-    private readonly string surveyContainerName = "Survey";
-    private readonly string storedProcedureId = "processResultsFromSingleSurvey";
 
     public async Task CreateSurveyBasetypeAsync(SurveyBase surveyBase)
     {
@@ -71,9 +70,8 @@ public class CosmosDbService
         }
     }
 
-    public async Task<SurveyBase> GetSurveyBaseAsync(Guid surveyBaseId)
+    public async Task<SurveyBaseTakeSurveyDto> GetSurveyBaseAsync(Guid surveyBaseId)
     {
-        SurveyBase output = new();
 
         if (!_memoryCache.TryGetValue<SurveyBase>(surveyBaseId, out SurveyBase? cachedValue))
         {
@@ -84,25 +82,53 @@ public class CosmosDbService
 
         }
 
-        if (cachedValue is not null)
+        if(cachedValue is null)
         {
-            output = cachedValue;
-
+            throw new ArgumentNullException(nameof(cachedValue));
         }
 
-        return output;
+        return cachedValue.ToTakeSurveyBaseDto();
 
     }
     public async Task<SurveyBase> UpsertSurveyBaseAsync(SurveyBase surveyBase)
     {
+        //TODO: Chase this down and see if I can remove it
         Container surveyContainer = GetSurveyContainer();
         ItemResponse<SurveyBase>? response = await surveyContainer.UpsertItemAsync(item: surveyBase, partitionKey: new PartitionKey(surveyBase.Id.ToString()));
 
-        _memoryCache.Remove(surveyBase.Id);
+        _memoryCache.Remove(response.Resource.Id);
         _memoryCache.Set<SurveyBase>(surveyBase.Id, response.Resource, CacheEntryOptions);
 
         return response.Resource;
     }
+
+    public async Task PatchSurveyAtResponses(SurveyBase surveyBase)
+    {
+        try
+        {
+            var patchOperations = new List<PatchOperation>();
+
+            foreach (var response in surveyBase.Responses)
+            {
+                patchOperations.Add(PatchOperation.Add("/responses/-", response));
+            }
+
+            Container surveyContainer = GetSurveyContainer();
+            ItemResponse<SurveyBase> item = await surveyContainer.PatchItemAsync<SurveyBase>(
+                id: surveyBase.Id.ToString(),
+                partitionKey: new PartitionKey(surveyBase.Id.ToString()),
+                patchOperations);
+
+            _memoryCache.Remove(surveyBase.Id);
+            _memoryCache.Set<SurveyBase>(surveyBase.Id, item.Resource, CacheEntryOptions);
+        }
+        catch(CosmosException cex)
+        {
+            _logger.LogError($"Error in PatchSurveyAtResponses: {cex.ToString()}");
+        }
+        
+    }
+
     public async Task DeleteSurveyBaseAsync(Guid surveyId)
     {
         Container surveyContainer = GetSurveyContainer();
