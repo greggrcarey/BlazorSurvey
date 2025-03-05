@@ -17,10 +17,9 @@ public class ServerSurveyService : ISurveyService
     {
         throw new NotImplementedException();
     }
-
-    public async Task<Survey?> GetSurveyByIdAsync(Guid surveyId)
+    public async Task<SurveyBase?> GetSurveyBaseAsync(Guid surveyId)
     {
-        return await _cosmosDbService.GetSurveyBaseAsync<Survey>(surveyId);
+        return await _cosmosDbService.GetSurveyBaseAsync(surveyId);
     }
 
     public async Task<SurveyResponseRollup?> GetSurveyResultsAsync(Guid surveyId)
@@ -33,17 +32,17 @@ public class ServerSurveyService : ISurveyService
         return _cosmosDbService.GetSurveyBaseIAsyncEnumerable<SurveyBase>();
     }
 
-    public Task PostSurveyAsync(Survey surveyModel)
+    public Task PostSurveyAsync(SurveyBase surveyModel)
     {
         return _cosmosDbService.UpsertSurveyBaseAsync(surveyModel);
     }
 
-    public Task PutSurveyAsync(Survey surveyModel)
+    public Task PutSurveyAsync(SurveyBase surveyModel)
     {
         return _cosmosDbService.UpsertSurveyBaseAsync(surveyModel);
     }
 
-    public async Task SaveSurvey(Survey surveyModel)
+    public async Task SaveSurvey(SurveyBase surveyModel)
     {
         await _cosmosDbService.CreateSurveyBasetypeAsync(surveyModel);
     }

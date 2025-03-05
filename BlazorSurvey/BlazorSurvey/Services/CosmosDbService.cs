@@ -93,39 +93,6 @@ public class CosmosDbService
         return output;
 
     }
-
-    public async Task<T> GetSurveyBaseAsync<T>(Guid surveyBaseId) where T : SurveyBase
-    {
-        SurveyBase output = new();
-
-        if (!_memoryCache.TryGetValue<T>(surveyBaseId, out T? cachedValue))
-        {
-            //Breaks if the wrong type is passed in
-            Container surveyContainer = GetSurveyContainer();
-
-            ItemResponse<T>? response = await surveyContainer.ReadItemAsync<T>(id: surveyBaseId.ToString(), new PartitionKey(surveyBaseId.ToString()));
-            if (response.Resource is not null)
-            {
-                cachedValue = response.Resource;
-                _memoryCache.Set<T>(surveyBaseId, cachedValue, CacheEntryOptions);
-
-            }
-            else
-            {
-                throw new InvalidCastException();
-            }
-
-        }
-
-        if (cachedValue is not null)
-        {
-            output = cachedValue;
-        }
-
-        return (T)output;
-
-
-    }
     public async Task<SurveyBase> UpsertSurveyBaseAsync(SurveyBase surveyBase)
     {
         Container surveyContainer = GetSurveyContainer();

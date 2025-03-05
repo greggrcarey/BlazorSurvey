@@ -89,7 +89,7 @@ else
 
     private async Task GetSurvey()
     {
-        Survey? surveyToTake = await SurveyService.GetSurveyByIdAsync(SurveyId);
+        var surveyToTake = await SurveyService.GetSurveyBaseAsync(SurveyId);
 
         if (surveyToTake is not null)
         {

@@ -5,10 +5,10 @@ public interface ISurveyService
 {
     IAsyncEnumerable<SurveyBase> GetSurveys();
     List<LivePoll> GetLivePolls();
-    Task SaveSurvey(Survey surveyModel);
-    Task PostSurveyAsync(Survey surveyModel);
-    Task<Survey?> GetSurveyByIdAsync(Guid surveyId);
-    Task PutSurveyAsync(Survey surveyModel);
+    Task SaveSurvey(SurveyBase surveyModel);
+    Task PostSurveyAsync(SurveyBase surveyModel);
+    Task<SurveyBase?> GetSurveyBaseAsync(Guid surveyBaseId);
+    Task PutSurveyAsync(SurveyBase surveyModel);
     Task<SurveyResponseRollup?> GetSurveyResultsAsync(Guid surveyId);
     Task DeleteSurvey(Guid SurveyId);
 }

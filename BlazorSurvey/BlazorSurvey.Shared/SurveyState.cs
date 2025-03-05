@@ -8,7 +8,7 @@ namespace BlazorSurvey.Shared;
  */
 public class SurveyState
 {
-    public Survey CurrentSurvey { get; private set; } = new Survey();
+    public SurveyBase CurrentSurvey { get; private set; } = new SurveyBase();
     public SurveyResponseRollup? SurveyResponseRollup { get; private set; }
     public QuestionBase? Question { get; set; }
 
@@ -21,7 +21,7 @@ public class SurveyState
         NotifyStateChanged();
     }
 
-    public void InitializeSurvey(Survey surveyModel)
+    public void InitializeSurvey(SurveyBase surveyModel)
     {
         //Should I pass the survey here? 
         CurrentSurvey = surveyModel;
@@ -70,7 +70,7 @@ public class SurveyState
 
     public void ResetSurvey()
     {
-        CurrentSurvey = new Survey();
+        CurrentSurvey = new SurveyBase();
         Question = null;
         NotifyStateChanged();
     }
