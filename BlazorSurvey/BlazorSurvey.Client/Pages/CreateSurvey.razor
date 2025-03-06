@@ -19,13 +19,14 @@ else
 {
 
     <MudButton Variant="Variant.Text" OnClick="SaveSurvey" Color="Color.Primary" Disabled="_isSaveDisabled">Save Survey</MudButton>
+    <MudText>Remaing Questions: @(NumberOfQuestionsRemaining)</MudText>
 
     <MudTextField T="string" DebounceInterval="500" Label="Give your Survey a Title"
     Required="true" RequiredError="You must enter a title" @bind-Value="SurveyState.CurrentSurvey.Title" />
 
     <p>
         <label>
-            <select @bind="selectedValue">
+            <select disabled="@AnyQuestionsRemaining" @bind="selectedValue">
                 <option value="">Select a Question to add to the Survey</option>
                 @foreach (var entry in Components)
                 {
@@ -55,6 +56,10 @@ else
 @code {
     private string _selectedValue = string.Empty;
     private bool _isSaveDisabled;
+
+    private bool AnyQuestionsRemaining => SurveyState.CurrentSurvey.Questions.Count > 9;
+
+    private int NumberOfQuestionsRemaining => 10 - SurveyState.CurrentSurvey.Questions.Count;
 
     private ComponentMetaData? _selectedComponent;
 

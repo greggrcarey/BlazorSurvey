@@ -45,6 +45,8 @@ public class SurveyState
     public void AddQuestion()
     {
         if (Question is null) return;
+        if (CurrentSurvey.Questions.Count > 10) return;
+        
         CurrentSurvey.Questions.Add(Question);
         Question = null;
         NotifyStateChanged();

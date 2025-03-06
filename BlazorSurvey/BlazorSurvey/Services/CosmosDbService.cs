@@ -92,6 +92,13 @@ public class CosmosDbService
     }
     public async Task<SurveyBase> UpsertSurveyBaseAsync(SurveyBase surveyBase)
     {
+
+        if(surveyBase.Questions.Count > 10)
+        {
+            // TODO: fix validation
+            throw new ArgumentOutOfRangeException(nameof(surveyBase.Questions), "SurveyBase types are only allowed 10 questions");
+        }
+
         //TODO: Chase this down and see if I can remove it
         Container surveyContainer = GetSurveyContainer();
         ItemResponse<SurveyBase>? response = await surveyContainer.UpsertItemAsync(item: surveyBase, partitionKey: new PartitionKey(surveyBase.Id.ToString()));
