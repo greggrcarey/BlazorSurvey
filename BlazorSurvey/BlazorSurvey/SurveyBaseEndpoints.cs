@@ -20,13 +20,13 @@ public class SurveyBaseModule
     {
         var group = endpointRouteBuilder.MapGroup("/api/survey");
 
-        group.MapGet("", GetSurveys).WithName("GetSurveys");
-        group.MapGet("/{id}", GetSurveyById).WithName("GetSurveyById");
-        group.MapPost("", PostSurvey).WithName("PostSurvey");
-        group.MapPut("", PutSurvey).WithName("PutSurvey");
-        group.MapDelete("/{id}", DeleteSurvey).WithName("DeleteSurvey");
-        group.MapGet("/response/{id}", GetSurveyResponseById).WithName("GetSurveyResponseById");
-        group.MapPost("/{id}/responses", PatchSurveyAtResponses).WithName("PostSurveyAtResponses");
+        group.MapGet("", GetSurveys).WithName("GetSurveys").RequireRateLimiting("fixed");
+        group.MapGet("/{id}", GetSurveyById).WithName("GetSurveyById").RequireRateLimiting("fixed");
+        group.MapPost("", PostSurvey).WithName("PostSurvey").RequireRateLimiting("fixed");
+        group.MapPut("", PutSurvey).WithName("PutSurvey").RequireRateLimiting("fixed");
+        group.MapDelete("/{id}", DeleteSurvey).WithName("DeleteSurvey").RequireRateLimiting("fixed");
+        group.MapGet("/response/{id}", GetSurveyResponseById).WithName("GetSurveyResponseById").RequireRateLimiting("fixed");
+        group.MapPost("/{id}/responses", PatchSurveyAtResponses).WithName("PostSurveyAtResponses").RequireRateLimiting("fixed");
 
     }
 
