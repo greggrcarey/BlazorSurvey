@@ -10,48 +10,50 @@
 
 <RenderInformation />
 
+<AuthorizeView>
 
-@if (SurveyState.CurrentSurvey is null)
-{
-    <p>Loading...</p>
-}
-else
-{
-
-    <MudButton Variant="Variant.Text" OnClick="SaveSurvey" Color="Color.Primary" Disabled="_isSaveDisabled">Save Survey</MudButton>
-    <MudText>Remaing Questions: @(NumberOfQuestionsRemaining)</MudText>
-
-    <MudTextField T="string" DebounceInterval="500" Label="Give your Survey a Title"
-    Required="true" RequiredError="You must enter a title" @bind-Value="SurveyState.CurrentSurvey.Title" />
-
-    <p>
-        <label>
-            <select disabled="@AnyQuestionsRemaining" @bind="selectedValue">
-                <option value="">Select a Question to add to the Survey</option>
-                @foreach (var entry in Components)
-                {
-                    <option value="@entry.Key">@entry.Value.Name</option>
-                }
-            </select>
-        </label>
-    </p>
-
-    @if (_selectedComponent is not null)
+    @if (SurveyState.CurrentSurvey is null)
     {
-        <div class="border border-primary my-1 p-1">
-            <DynamicComponent Type="_selectedComponent.Type" />
-        </div>
+        <p>Loading...</p>
     }
-
-    @foreach (var question in SurveyState.CurrentSurvey.Questions)
+    else
     {
-        var readOnlyMetaData = ReadOnlyComponents[question.GetType().Name];
 
-        readOnlyMetaData.Parameters.Add("QuestionData", question);
+        <MudButton Variant="Variant.Text" OnClick="SaveSurvey" Color="Color.Primary" Disabled="_isSaveDisabled">Save Survey</MudButton>
+        <MudText>Remaing Questions: @(NumberOfQuestionsRemaining)</MudText>
 
-        <DynamicComponent Type="readOnlyMetaData.Type" Parameters="readOnlyMetaData.Parameters" />
+        <MudTextField T="string" DebounceInterval="500" Label="Give your Survey a Title"
+                      Required="true" RequiredError="You must enter a title" @bind-Value="SurveyState.CurrentSurvey.Title" />
+
+        <p>
+            <label>
+                <select disabled="@AnyQuestionsRemaining" @bind="selectedValue">
+                    <option value="">Select a Question to add to the Survey</option>
+                    @foreach (var entry in Components)
+                    {
+                        <option value="@entry.Key">@entry.Value.Name</option>
+                    }
+                </select>
+            </label>
+        </p>
+
+        @if (_selectedComponent is not null)
+        {
+            <div class="border border-primary my-1 p-1">
+                <DynamicComponent Type="_selectedComponent.Type" />
+            </div>
+        }
+
+        @foreach (var question in SurveyState.CurrentSurvey.Questions)
+        {
+            var readOnlyMetaData = ReadOnlyComponents[question.GetType().Name];
+
+            readOnlyMetaData.Parameters.Add("QuestionData", question);
+
+            <DynamicComponent Type="readOnlyMetaData.Type" Parameters="readOnlyMetaData.Parameters" />
+        }
     }
-}
+</AuthorizeView>
 
 @code {
     private string _selectedValue = string.Empty;
@@ -89,7 +91,7 @@ else
             {
                 Type = typeof(TextComponent),
                 Name = "Text Question",
-                Parameters = { } 
+                Parameters = { }
             },
             [nameof(RatingComponent)] = new ComponentMetaData()
             {

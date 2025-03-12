@@ -4,6 +4,7 @@
 @inject NavigationManager NavigationManager
 <PageTitle>Results for @SurveyState?.SurveyResponseRollup?.SurveyTitle</PageTitle>
 
+<AuthorizeView>
 <h3>Survey Results</h3>
 
 @if (SurveyState.SurveyResponseRollup is not null && SurveyState.SurveyResponseRollup.SurveyTitle is not null)
@@ -26,7 +27,7 @@ else
 {
     <MudText Typo="Typo.body1">No results to display for this survey.</MudText>
 }
-
+</AuthorizeView>
 @code {
     [Parameter]
     public Guid SurveyId { get; set; }

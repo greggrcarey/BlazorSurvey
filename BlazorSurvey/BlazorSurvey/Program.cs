@@ -23,6 +23,9 @@ using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
+//probably in here somewhere
+//https://learn.microsoft.com/en-us/aspnet/core/blazor/security/?view=aspnetcore-9.0&tabs=visual-studio
+
 #region Configuration
 IConfigurationRoot configuration = new ConfigurationBuilder()
 .AddUserSecrets<Program>()

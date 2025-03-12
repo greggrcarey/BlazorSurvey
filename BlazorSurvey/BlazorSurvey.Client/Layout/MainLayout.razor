@@ -10,13 +10,20 @@
 @* Needed for snackbars *@
 <MudSnackbarProvider />
 
-<MudLayout>
-    <MudMainContent>
-        <MudContainer MaxWidth="MaxWidth.Medium">
-            @Body
-        </MudContainer>
-    </MudMainContent>
-</MudLayout>
+<div class="page">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+    <MudLayout>
+        <MudMainContent>
+            <MudContainer MaxWidth="MaxWidth.Medium">
+                <article class="content px-4">
+                    @Body
+                </article>
+            </MudContainer>
+        </MudMainContent>
+    </MudLayout>
+</div>
 
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled error has occurred.
@@ -24,13 +31,13 @@
     <span class="dismiss">🗙</span>
 </div>
 
-@code{
+@code {
     private bool _isDarkMode;
     private MudThemeProvider _mudThemeProvider = new();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if(firstRender)
+        if (firstRender)
         {
             _isDarkMode = await _mudThemeProvider.GetSystemPreference();
             await _mudThemeProvider.WatchSystemPreference(OnSystemPreferenceChanged);

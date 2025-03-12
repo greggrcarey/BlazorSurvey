@@ -10,47 +10,57 @@
 
 <PageTitle>Create or View Surveys</PageTitle>
 
+<AuthorizeView>
+    <Authorized>
 <h1>Create and Share Surveys here</h1>
+
+<MudLink Href="/Account/Login">Log in</MudLink>
 <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/create-survey">Add new Survey</MudButton>
 
-<RenderInformation/>
+<RenderInformation />
 
-@if (_surveyModel is null)
-{
-    <p>Loading...</p>
-}
-else
-{
-    <MudDataGrid Items="@_surveyModel" Filterable="false" SortMode="@SortMode.None" Groupable="false">
-        <Columns>
-            <PropertyColumn Property="x => x.Title" />
-            <PropertyColumn Property="x => x.Created" Format="g" />
-            <PropertyColumn Property="x => x.GetType().Name" />
-            <TemplateColumn>
-                <CellTemplate Context="collection">
-                    <MudStack Row>
-                        <MudButton Size="@Size.Small" Variant="@Variant.Filled" Color="@Color.Primary" @onclick="_ => CopySurveyLink(collection.Item.Id)">Copy Link</MudButton>
-                    </MudStack>
-                </CellTemplate>
-            </TemplateColumn>
-            <TemplateColumn>
-                    <CellTemplate Context="collection">
-                    <MudStack Row>
-                        <MudButton Size="@Size.Small" Variant="@Variant.Filled" Color="@Color.Primary" @onclick="_ => NavigateToResults(collection.Item.Id)">Results</MudButton>
-                    </MudStack>
-                </CellTemplate>
-            </TemplateColumn>
-            <TemplateColumn>
-                    <CellTemplate Context="collection">
-                    <MudStack Row>
-                        <MudButton Size="@Size.Small" Variant="@Variant.Filled" Color="@Color.Primary" @onclick="_ => DeleteSurvey(collection.Item)">Delete Survey</MudButton>
-                    </MudStack>
-                </CellTemplate>
-            </TemplateColumn>
-        </Columns>
 
-    </MudDataGrid>
-}
+        @if (_surveyModel is null)
+        {
+            <p>Loading...</p>
+        }
+        else
+        {
+            <MudDataGrid Items="@_surveyModel" Filterable="false" SortMode="@SortMode.None" Groupable="false">
+                <Columns>
+                    <PropertyColumn Property="x => x.Title" />
+                    <PropertyColumn Property="x => x.Created" Format="g" />
+                    <PropertyColumn Property="x => x.GetType().Name" />
+                    <TemplateColumn>
+                        <CellTemplate Context="collection">
+                            <MudStack Row>
+                                <MudButton Size="@Size.Small" Variant="@Variant.Filled" Color="@Color.Primary" @onclick="_ => CopySurveyLink(collection.Item.Id)">Copy Link</MudButton>
+                            </MudStack>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn>
+                        <CellTemplate Context="collection">
+                            <MudStack Row>
+                                <MudButton Size="@Size.Small" Variant="@Variant.Filled" Color="@Color.Primary" @onclick="_ => NavigateToResults(collection.Item.Id)">Results</MudButton>
+                            </MudStack>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn>
+                        <CellTemplate Context="collection">
+                            <MudStack Row>
+                                <MudButton Size="@Size.Small" Variant="@Variant.Filled" Color="@Color.Primary" @onclick="_ => DeleteSurvey(collection.Item)">Delete Survey</MudButton>
+                            </MudStack>
+                        </CellTemplate>
+                    </TemplateColumn>
+                </Columns>
+
+            </MudDataGrid>
+        }
+    </Authorized>
+    <NotAuthorized>
+        <MudText>Log in to create, share and view Survey results</MudText>
+    </NotAuthorized>
+</AuthorizeView>
 
 
 @code {
@@ -112,13 +122,13 @@ else
 
     private async Task DeleteSurvey(SurveyBase survey)
     {
-        if(module is not null)
+        if (module is not null)
         {
             var confirmDelete = await module.InvokeAsync<bool>("ConfirmBeforeDelete");
             if (!confirmDelete) return;
         }
 
-        if(_surveyModel is not null)
+        if (_surveyModel is not null)
         {
             var test = _surveyModel.ToList();
             test.Remove(survey);

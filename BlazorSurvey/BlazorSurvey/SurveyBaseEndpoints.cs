@@ -20,14 +20,38 @@ public class SurveyBaseModule
     {
         var group = endpointRouteBuilder.MapGroup("/api/survey");
 
-        group.MapGet("", GetSurveys).WithName("GetSurveys").RequireRateLimiting("fixed");
-        group.MapGet("/{id}", GetSurveyById).WithName("GetSurveyById").RequireRateLimiting("fixed");
-        group.MapPost("", PostSurvey).WithName("PostSurvey").RequireRateLimiting("fixed");
-        group.MapPut("", PutSurvey).WithName("PutSurvey").RequireRateLimiting("fixed");
-        group.MapDelete("/{id}", DeleteSurvey).WithName("DeleteSurvey").RequireRateLimiting("fixed");
-        group.MapGet("/response/{id}", GetSurveyResponseById).WithName("GetSurveyResponseById").RequireRateLimiting("fixed");
-        group.MapPost("/{id}/responses", PatchSurveyAtResponses).WithName("PostSurveyAtResponses").RequireRateLimiting("fixed");
+        group.MapGet("", GetSurveys)
+            .WithName("GetSurveys")
+            .RequireRateLimiting("fixed")
+            .RequireAuthorization();
 
+        group.MapGet("/{id}", GetSurveyById)
+            .WithName("GetSurveyById")
+            .RequireRateLimiting("fixed");//No Auth for anonymous endpoint
+
+        group.MapPost("", PostSurvey)
+            .WithName("PostSurvey")
+            .RequireRateLimiting("fixed")
+            .RequireAuthorization();
+
+        group.MapPut("", PutSurvey)
+            .WithName("PutSurvey")
+            .RequireRateLimiting("fixed")
+            .RequireAuthorization();
+
+        group.MapDelete("/{id}", DeleteSurvey)
+            .WithName("DeleteSurvey")
+            .RequireRateLimiting("fixed")
+            .RequireAuthorization();
+
+        group.MapGet("/response/{id}", GetSurveyResponseById)
+            .WithName("GetSurveyResponseById")
+            .RequireRateLimiting("fixed")
+            .RequireAuthorization();
+
+        group.MapPost("/{id}/responses", PatchSurveyAtResponses)
+            .WithName("PostSurveyAtResponses")
+            .RequireRateLimiting("fixed");//No Auth for anonymous endpoint
     }
 
     public Results<Ok<IAsyncEnumerable<SurveyBase>>, NotFound> GetSurveys()
