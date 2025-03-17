@@ -2,31 +2,39 @@
 @inject SurveyState SurveyState
 @inject ISurveyService SurveyService
 @inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@using Microsoft.AspNetCore.Components.Authorization
+
 <PageTitle>Results for @SurveyState?.SurveyResponseRollup?.SurveyTitle</PageTitle>
 
 <AuthorizeView>
-<h3>Survey Results</h3>
+    <Authorized>
+        <h3>Survey Results</h3>
 
-@if (SurveyState.SurveyResponseRollup is not null && SurveyState.SurveyResponseRollup.SurveyTitle is not null)
-{
-    <MudText Typo="Typo.h1">Results for @SurveyState.SurveyResponseRollup.SurveyTitle</MudText>
-}
+        @if (SurveyState.SurveyResponseRollup is not null && SurveyState.SurveyResponseRollup.SurveyTitle is not null)
+        {
+            <MudText Typo="Typo.h1">Results for @SurveyState.SurveyResponseRollup.SurveyTitle</MudText>
+        }
 
-@if (SurveyState.SurveyResponseRollup is not null &&
-    SurveyState.SurveyResponseRollup.Results is not null &&
-    SurveyState.SurveyResponseRollup.Results.Count > 0)
-{
-    @foreach (var result in SurveyState.SurveyResponseRollup.Results)
-    {
-        var resultMetaData = ResultComponentMetaData[result.ResponseType];
-        resultMetaData.Parameters.Add("ResultData", result);
-        <DynamicComponent Type="resultMetaData.Type" Parameters="resultMetaData.Parameters" />
-    }
-}
-else
-{
-    <MudText Typo="Typo.body1">No results to display for this survey.</MudText>
-}
+        @if (SurveyState.SurveyResponseRollup is not null &&
+        SurveyState.SurveyResponseRollup.Results is not null &&
+        SurveyState.SurveyResponseRollup.Results.Count > 0)
+        {
+            @foreach (var result in SurveyState.SurveyResponseRollup.Results)
+            {
+                var resultMetaData = ResultComponentMetaData[result.ResponseType];
+                resultMetaData.Parameters.Add("ResultData", result);
+                <DynamicComponent Type="resultMetaData.Type" Parameters="resultMetaData.Parameters" />
+            }
+        }
+        else
+        {
+            <MudText Typo="Typo.body1">No results to display for this survey.</MudText>
+        }
+    </Authorized>
+    <NotAuthorized>
+        <p>Redirecting to Login</p>
+    </NotAuthorized>
 </AuthorizeView>
 @code {
     [Parameter]
@@ -55,6 +63,16 @@ else
             }
         };
 
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+
+        if(authState.User.Identity is null || !authState.User.Identity.IsAuthenticated)
+        {
+            NavigationManager.NavigateTo("/", forceLoad: true);
+        }
+    } 
+
     protected override async Task OnParametersSetAsync()
     {
         var result = await SurveyService.GetSurveyResultsAsync(SurveyId);
@@ -63,7 +81,5 @@ else
         {
             SurveyState.SetSurveyResults(result);
         }
-
-
     }
 }
