@@ -231,6 +231,9 @@ app.UseAntiforgery();
 
 var surveyModule = app.Services.GetRequiredService<SurveyBaseModule>();
 surveyModule.MapSurveyBaseEndpoints(app);
+//need to review for ServiceLocator Pattern
+//https://learn.microsoft.com/en-us/dotnet/core/extensions/dependency-injection-guidelines#scoped-service-as-singleton
+
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>()

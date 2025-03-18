@@ -1,7 +1,10 @@
-﻿using BlazorSurvey.Shared.Dtos;
+﻿using BlazorSurvey.Data;
+using BlazorSurvey.Shared.Dtos;
 using BlazorSurvey.Shared.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.OpenApi.Writers;
 
 namespace BlazorSurvey.Services;
 
@@ -13,17 +16,26 @@ public class CosmosDbService
     private readonly string surveyDbName = "SurveyDb";
     private readonly string surveyContainerName = "Survey";
     private readonly string storedProcedureId = "processResultsFromSingleSurvey";
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IServiceProvider _serviceProvider;
     private readonly MemoryCacheEntryOptions CacheEntryOptions = new MemoryCacheEntryOptions
     {
         Size = 1024 * 2,
         AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(1)
     };
 
-    public CosmosDbService(CosmosClient client, ILogger<CosmosDbService> logger, IMemoryCache memoryCache)
+    public CosmosDbService(CosmosClient client,
+                           ILogger<CosmosDbService> logger,
+                           IMemoryCache memoryCache,
+                           IHttpContextAccessor httpContextAccessor,
+                           IServiceProvider serviceProvider)
     {
         _client = client;
         _logger = logger;
         _memoryCache = memoryCache;
+        _httpContextAccessor = httpContextAccessor;
+        //TODO: https://learn.microsoft.com/en-us/aspnet/core/blazor/security/interactive-server-side-rendering?view=aspnetcore-9.0&preserve-view=true
+        _serviceProvider = serviceProvider;
     }
 
     //Need to add resiliency
@@ -36,7 +48,7 @@ public class CosmosDbService
         try
         {
             ItemResponse<SurveyBase>? surveyBaseResponse = await container.CreateItemAsync(surveyBase, partitionKey: new PartitionKey(surveyBase.Id.ToString()));
-            if (surveyBaseResponse.StatusCode == System.Net.HttpStatusCode.Created || 
+            if (surveyBaseResponse.StatusCode == System.Net.HttpStatusCode.Created ||
                 surveyBaseResponse.StatusCode == System.Net.HttpStatusCode.Accepted)
             {
                 _memoryCache.Set<SurveyBase>(surveyBase.Id, surveyBaseResponse.Resource, CacheEntryOptions);
@@ -52,6 +64,12 @@ public class CosmosDbService
     public async IAsyncEnumerable<T> GetSurveyBaseIAsyncEnumerable<T>() where T : SurveyBase
     {
         Container surveyContainer = GetSurveyContainer();
+        var user = await GetCurrentUser();
+
+        if (user is null)
+        {
+            yield break;
+        }
 
         using FeedIterator<SurveyBase> iterator = surveyContainer.GetItemQueryIterator<SurveyBase>();
 
@@ -61,7 +79,7 @@ public class CosmosDbService
 
             foreach (var item in response)
             {
-                if (item is T t)
+                if (item is T t && user.Id == item.UserId)
                 {
                     yield return (T)item;
                 }
@@ -82,7 +100,7 @@ public class CosmosDbService
 
         }
 
-        if(cachedValue is null)
+        if (cachedValue is null)
         {
             throw new ArgumentNullException(nameof(cachedValue));
         }
@@ -93,10 +111,17 @@ public class CosmosDbService
     public async Task<SurveyBase> UpsertSurveyBaseAsync(SurveyBase surveyBase)
     {
 
-        if(surveyBase.Questions.Count > 10)
+        if (surveyBase.Questions.Count > 10)
         {
             // TODO: fix validation
             throw new ArgumentOutOfRangeException(nameof(surveyBase.Questions), "SurveyBase types are only allowed 10 questions");
+        }
+
+        ApplicationUser? user = await GetCurrentUser();
+
+        if (user is not null)
+        {
+            surveyBase.UserId = user.Id;
         }
 
         //TODO: Chase this down and see if I can remove it
@@ -107,6 +132,34 @@ public class CosmosDbService
         _memoryCache.Set<SurveyBase>(surveyBase.Id, response.Resource, CacheEntryOptions);
 
         return response.Resource;
+    }
+
+    private async Task<ApplicationUser?> GetCurrentUser()
+    {
+        try
+        {
+            System.Security.Claims.ClaimsPrincipal? principal = _httpContextAccessor.HttpContext?.User;
+
+            if (principal is null) { throw new ArgumentNullException(nameof(principal)); }
+
+            using IServiceScope? serviceProviderScope = _serviceProvider.CreateScope();
+
+            if(serviceProviderScope is null) return null;
+
+            var userManager = serviceProviderScope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+            ApplicationUser? user = await userManager.GetUserAsync(principal);
+
+            if (user is null) { throw new ArgumentNullException(nameof(user)); }
+
+            return user;
+        }
+        catch (ArgumentNullException ane)
+        {
+            _logger.LogError(ane, "Error in {nameof(GetCurrentUser)}", nameof(GetCurrentUser));
+            return null;
+        }
+
     }
 
     public async Task PatchSurveyAtResponses(SurveyBase surveyBase)
@@ -129,11 +182,11 @@ public class CosmosDbService
             _memoryCache.Remove(surveyBase.Id);
             _memoryCache.Set<SurveyBase>(surveyBase.Id, item.Resource, CacheEntryOptions);
         }
-        catch(CosmosException cex)
+        catch (CosmosException cex)
         {
             _logger.LogError($"Error in PatchSurveyAtResponses: {cex.ToString()}");
         }
-        
+
     }
 
     public async Task DeleteSurveyBaseAsync(Guid surveyId)
@@ -143,7 +196,7 @@ public class CosmosDbService
         {
             ItemResponse<SurveyBase>? response = await surveyContainer.DeleteItemAsync<SurveyBase>(surveyId.ToString(), new PartitionKey(surveyId.ToString()));
 
-            if(response.StatusCode is System.Net.HttpStatusCode.OK)
+            if (response.StatusCode is System.Net.HttpStatusCode.OK)
             {
                 _memoryCache.Remove(surveyId);
             }

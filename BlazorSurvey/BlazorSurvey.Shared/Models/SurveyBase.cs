@@ -9,6 +9,7 @@ public abstract record SurveyBase
 {
     [JsonPropertyName("id")]
     public Guid Id { get; set; } = Guid.NewGuid();
+    public string? UserId { get; set; }
     public int Version { get; set; }
     [Required(AllowEmptyStrings = false, ErrorMessage = "A title is required for the survey")]
     public string Title { get; set; } = string.Empty;
