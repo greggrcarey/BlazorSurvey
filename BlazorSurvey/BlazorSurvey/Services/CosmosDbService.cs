@@ -1,6 +1,7 @@
 ﻿using BlazorSurvey.Data;
 using BlazorSurvey.Shared.Dtos;
 using BlazorSurvey.Shared.Models;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Caching.Memory;
@@ -16,8 +17,8 @@ public class CosmosDbService
     private readonly string surveyDbName = "SurveyDb";
     private readonly string surveyContainerName = "Survey";
     private readonly string storedProcedureId = "processResultsFromSingleSurvey";
-    private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly IServiceProvider _serviceProvider;
+    private readonly UserService _userService;
+    private readonly UserManager<ApplicationUser> _userManager;
     private readonly MemoryCacheEntryOptions CacheEntryOptions = new MemoryCacheEntryOptions
     {
         Size = 1024 * 2,
@@ -28,14 +29,16 @@ public class CosmosDbService
                            ILogger<CosmosDbService> logger,
                            IMemoryCache memoryCache,
                            IHttpContextAccessor httpContextAccessor,
+                           UserService userService,
+                           UserManager<ApplicationUser> userManager,
                            IServiceProvider serviceProvider)
     {
         _client = client;
         _logger = logger;
         _memoryCache = memoryCache;
-        _httpContextAccessor = httpContextAccessor;
+        _userService = userService;
+        _userManager = userManager;
         //TODO: https://learn.microsoft.com/en-us/aspnet/core/blazor/security/interactive-server-side-rendering?view=aspnetcore-9.0&preserve-view=true
-        _serviceProvider = serviceProvider;
     }
 
     //Need to add resiliency
@@ -45,6 +48,17 @@ public class CosmosDbService
     public async Task CreateSurveyBasetypeAsync(SurveyBase surveyBase)
     {
         Container container = GetSurveyContainer();
+
+        var user = await GetCurrentUser();
+
+        if(user is null)
+        {
+            _logger.LogError("Null user returned in CreateSurveyBasetypeAsync");
+            return; //How do I handle this better?
+        }
+
+        surveyBase.UserId = user.Id;
+
         try
         {
             ItemResponse<SurveyBase>? surveyBaseResponse = await container.CreateItemAsync(surveyBase, partitionKey: new PartitionKey(surveyBase.Id.ToString()));
@@ -138,25 +152,21 @@ public class CosmosDbService
     {
         try
         {
-            System.Security.Claims.ClaimsPrincipal? principal = _httpContextAccessor.HttpContext?.User;
 
-            if (principal is null) { throw new ArgumentNullException(nameof(principal)); }
+            //I'm still missing something here. Not sure what but this almost works.
+            var claimsPrincipal = _userService.GetUser();
 
-            using IServiceScope? serviceProviderScope = _serviceProvider.CreateScope();
+            if(claimsPrincipal is null) return null;
 
-            if(serviceProviderScope is null) return null;
+            var user = await _userManager.GetUserAsync(claimsPrincipal);
 
-            var userManager = serviceProviderScope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-
-            ApplicationUser? user = await userManager.GetUserAsync(principal);
-
-            if (user is null) { throw new ArgumentNullException(nameof(user)); }
+            if (user is null) return null;
 
             return user;
         }
-        catch (ArgumentNullException ane)
+        catch (Exception ex)
         {
-            _logger.LogError(ane, "Error in {nameof(GetCurrentUser)}", nameof(GetCurrentUser));
+            _logger.LogError(ex, "Error in {nameof(GetCurrentUser)}", nameof(GetCurrentUser));
             return null;
         }
 

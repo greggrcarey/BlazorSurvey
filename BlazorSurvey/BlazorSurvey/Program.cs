@@ -5,6 +5,7 @@ using BlazorSurvey.Data;
 using BlazorSurvey.Services;
 using BlazorSurvey.Shared;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.Server.Circuits;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
@@ -176,9 +177,11 @@ builder.Services.AddRateLimiter(_ => _
 builder.Services.AddMudServices();
 builder.Services.TryAddScoped<IWebAssemblyHostEnvironment, ServerHostEnvironment>();
 builder.Services.AddScoped<SurveyState>();
-builder.Services.AddSingleton<CosmosDbService>();
-builder.Services.AddSingleton<ISurveyService, ServerSurveyService>();
-builder.Services.AddSingleton<SurveyBaseModule>();
+builder.Services.AddScoped<CosmosDbService>();
+builder.Services.AddScoped<ISurveyService, ServerSurveyService>();
+builder.Services.AddScoped<SurveyBaseModule>();
+builder.Services.AddScoped<UserService>();
+builder.Services.TryAddEnumerable(ServiceDescriptor.Scoped<CircuitHandler, UserCircuitHandler>());
 builder.Services.AddMemoryCache();
 
 
@@ -229,13 +232,23 @@ app.UseHttpsRedirection();
 
 app.UseAntiforgery();
 
-var surveyModule = app.Services.GetRequiredService<SurveyBaseModule>();
-surveyModule.MapSurveyBaseEndpoints(app);
+//var surveyModule = app.Services.GetRequiredService<SurveyBaseModule>();
+//surveyModule.MapSurveyBaseEndpoints(app);
+
+using ServiceProvider serviceProvider = builder.Services.BuildServiceProvider(validateScopes: true);
+using (IServiceScope scope = serviceProvider.CreateScope())
+{
+    var surveyModule1 = scope.ServiceProvider.GetRequiredService<SurveyBaseModule>();
+    surveyModule1.MapSurveyBaseEndpoints(app);
+}
+
+
 //need to review for ServiceLocator Pattern
 //https://learn.microsoft.com/en-us/dotnet/core/extensions/dependency-injection-guidelines#scoped-service-as-singleton
 
 
 app.MapStaticAssets();
+app.UseMiddleware<UserServiceMiddleware>();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
     .AddInteractiveWebAssemblyRenderMode()
