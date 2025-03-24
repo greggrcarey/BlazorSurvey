@@ -1,12 +1,19 @@
 ﻿using BlazorSurvey.Shared;
 using BlazorSurvey.Shared.Models;
+using System.Security.Claims;
 
 namespace BlazorSurvey.Services;
 
 public class ServerSurveyService : ISurveyService
 {
     private readonly CosmosDbService _cosmosDbService;
-    public ServerSurveyService(CosmosDbService cosmosDbService) => _cosmosDbService = cosmosDbService;
+    private readonly UserService _userService;
+
+    public ServerSurveyService(CosmosDbService cosmosDbService, UserService userService)
+    {
+        _cosmosDbService = cosmosDbService;
+        _userService = userService;
+    }
 
     public async Task DeleteSurvey(Guid surveyId)
     {
@@ -29,12 +36,24 @@ public class ServerSurveyService : ISurveyService
 
     public IAsyncEnumerable<SurveyBase> GetSurveys()
     {
-        return _cosmosDbService.GetSurveyBaseIAsyncEnumerable<SurveyBase>();
+        ClaimsPrincipal? claimsPrincipal = _userService.GetUser();
+        if (claimsPrincipal == null)
+        {
+            throw new InvalidOperationException("ClaimsPrincipal cannot be null for GetSurveys");
+        }
+        return _cosmosDbService.GetSurveyBaseIAsyncEnumerable<SurveyBase>(claimsPrincipal);
     }
 
     public Task PostSurveyAsync(SurveyBase surveyModel)
     {
-        return _cosmosDbService.UpsertSurveyBaseAsync(surveyModel);
+        ClaimsPrincipal? claimsPrincipal = _userService.GetUser();
+        if (claimsPrincipal == null)
+        {
+            throw new InvalidOperationException("ClaimsPrincipal cannot be null for PostSurveyAsync");
+        }
+
+
+        return _cosmosDbService.UpsertSurveyBaseAsync(surveyModel, claimsPrincipal);
     }
 
     public Task PostSurveyResponses(SurveyBase surveyModel)
@@ -44,12 +63,24 @@ public class ServerSurveyService : ISurveyService
 
     public Task PutSurveyAsync(SurveyBase surveyModel)
     {
-        return _cosmosDbService.UpsertSurveyBaseAsync(surveyModel);
+        ClaimsPrincipal? claimsPrincipal = _userService.GetUser();
+        if (claimsPrincipal == null)
+        {
+            throw new InvalidOperationException("ClaimsPrincipal cannot be null for PutSurveyAsync");
+        }
+
+        return _cosmosDbService.UpsertSurveyBaseAsync(surveyModel, claimsPrincipal);
     }
 
     public async Task SaveSurvey(SurveyBase surveyModel)
     {
-        await _cosmosDbService.CreateSurveyBasetypeAsync(surveyModel);
+        ClaimsPrincipal? claimsPrincipal = _userService.GetUser();
+        if (claimsPrincipal == null)
+        {
+            throw new InvalidOperationException("ClaimsPrincipal cannot be null for PutSurveyAsync");
+        }
+
+        await _cosmosDbService.CreateSurveyBasetypeAsync(surveyModel, claimsPrincipal);
     }
 
 }

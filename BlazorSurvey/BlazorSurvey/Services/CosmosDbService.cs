@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.OpenApi.Writers;
+using System.Security.Claims;
 
 namespace BlazorSurvey.Services;
 
@@ -18,7 +19,7 @@ public class CosmosDbService
     private readonly string surveyContainerName = "Survey";
     private readonly string storedProcedureId = "processResultsFromSingleSurvey";
     private readonly UserService _userService;
-    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly MemoryCacheEntryOptions CacheEntryOptions = new MemoryCacheEntryOptions
     {
         Size = 1024 * 2,
@@ -31,13 +32,13 @@ public class CosmosDbService
                            IHttpContextAccessor httpContextAccessor,
                            UserService userService,
                            UserManager<ApplicationUser> userManager,
-                           IServiceProvider serviceProvider)
+                           IServiceScopeFactory serviceScopeFactory)
     {
         _client = client;
         _logger = logger;
         _memoryCache = memoryCache;
         _userService = userService;
-        _userManager = userManager;
+        _serviceScopeFactory = serviceScopeFactory;
         //TODO: https://learn.microsoft.com/en-us/aspnet/core/blazor/security/interactive-server-side-rendering?view=aspnetcore-9.0&preserve-view=true
     }
 
@@ -45,11 +46,11 @@ public class CosmosDbService
     //https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/conceptual-resilient-sdk-applications
     //https://learn.microsoft.com/en-us/dotnet/core/resilience/?tabs=dotnet-cli
 
-    public async Task CreateSurveyBasetypeAsync(SurveyBase surveyBase)
+    public async Task CreateSurveyBasetypeAsync(SurveyBase surveyBase, ClaimsPrincipal claimsPrincipal)
     {
         Container container = GetSurveyContainer();
 
-        var user = await GetCurrentUser();
+        var user = await GetCurrentUser(claimsPrincipal);
 
         if(user is null)
         {
@@ -75,10 +76,10 @@ public class CosmosDbService
         }
     }
 
-    public async IAsyncEnumerable<T> GetSurveyBaseIAsyncEnumerable<T>() where T : SurveyBase
+    public async IAsyncEnumerable<T> GetSurveyBaseIAsyncEnumerable<T>(ClaimsPrincipal claimsPrincipal) where T : SurveyBase
     {
         Container surveyContainer = GetSurveyContainer();
-        var user = await GetCurrentUser();
+        var user = await GetCurrentUser(claimsPrincipal);
 
         if (user is null)
         {
@@ -122,7 +123,7 @@ public class CosmosDbService
         return cachedValue.ToTakeSurveyBaseDto();
 
     }
-    public async Task<SurveyBase> UpsertSurveyBaseAsync(SurveyBase surveyBase)
+    public async Task<SurveyBase> UpsertSurveyBaseAsync(SurveyBase surveyBase, ClaimsPrincipal claimsPrincipal)
     {
 
         if (surveyBase.Questions.Count > 10)
@@ -131,7 +132,7 @@ public class CosmosDbService
             throw new ArgumentOutOfRangeException(nameof(surveyBase.Questions), "SurveyBase types are only allowed 10 questions");
         }
 
-        ApplicationUser? user = await GetCurrentUser();
+        ApplicationUser? user = await GetCurrentUser(claimsPrincipal);
 
         if (user is not null)
         {
@@ -148,17 +149,15 @@ public class CosmosDbService
         return response.Resource;
     }
 
-    private async Task<ApplicationUser?> GetCurrentUser()
+    private async Task<ApplicationUser?> GetCurrentUser(ClaimsPrincipal claimsPrincipal)
     {
         try
         {
+            using var scope = _serviceScopeFactory.CreateScope();
 
-            //I'm still missing something here. Not sure what but this almost works.
-            var claimsPrincipal = _userService.GetUser();
+            var userManger = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
-            if(claimsPrincipal is null) return null;
-
-            var user = await _userManager.GetUserAsync(claimsPrincipal);
+            var user = await userManger.GetUserAsync(claimsPrincipal);
 
             if (user is null) return null;
 

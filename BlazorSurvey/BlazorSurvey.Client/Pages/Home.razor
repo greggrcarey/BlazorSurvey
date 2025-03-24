@@ -16,7 +16,6 @@
 
 <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/create-survey">Add new Survey</MudButton>
 
-<RenderInformation />
 
 
         @if (_surveyModel is null)
@@ -58,7 +57,6 @@
     </Authorized>
     <NotAuthorized>
         <MudText>Log in to create, share and view Survey results</MudText>
-        <RenderInformation />
     </NotAuthorized>
 </AuthorizeView>
 

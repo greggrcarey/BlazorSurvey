@@ -182,6 +182,7 @@ builder.Services.AddScoped<ISurveyService, ServerSurveyService>();
 builder.Services.AddScoped<SurveyBaseModule>();
 builder.Services.AddScoped<UserService>();
 builder.Services.TryAddEnumerable(ServiceDescriptor.Scoped<CircuitHandler, UserCircuitHandler>());
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddMemoryCache();
 
 

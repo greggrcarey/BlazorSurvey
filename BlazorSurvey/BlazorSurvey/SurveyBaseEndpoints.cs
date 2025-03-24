@@ -8,12 +8,14 @@ namespace BlazorSurvey;
 public class SurveyBaseModule
 {
     private readonly CosmosDbService _cosmosDbService;
+    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly ILogger<SurveyBaseModule> _logger;
 
-    public SurveyBaseModule(CosmosDbService cosmosDbService, ILogger<SurveyBaseModule> logger)
+    public SurveyBaseModule(CosmosDbService cosmosDbService, ILogger<SurveyBaseModule> logger, IHttpContextAccessor httpContext)
     {
         _cosmosDbService = cosmosDbService;
         _logger = logger;
+        _httpContextAccessor = httpContext;
     }
 
     public void MapSurveyBaseEndpoints(IEndpointRouteBuilder endpointRouteBuilder)
@@ -54,11 +56,17 @@ public class SurveyBaseModule
             .RequireRateLimiting("fixed");//No Auth for anonymous endpoint
     }
 
-    public Results<Ok<IAsyncEnumerable<SurveyBase>>, NotFound> GetSurveys()
+    public Results<Ok<IAsyncEnumerable<SurveyBase>>, NotFound, BadRequest> GetSurveys()
     {
         _logger.LogInformation("GetSurveys called");
+        System.Security.Claims.ClaimsPrincipal? claimsPrincipal = _httpContextAccessor.HttpContext?.User;
 
-        var results = _cosmosDbService.GetSurveyBaseIAsyncEnumerable<SurveyBase>();
+        if (claimsPrincipal is null)
+        {
+            return TypedResults.BadRequest();
+        }
+
+        var results = _cosmosDbService.GetSurveyBaseIAsyncEnumerable<SurveyBase>(claimsPrincipal);
         return results switch
         {
             null => TypedResults.NotFound(),
@@ -95,7 +103,14 @@ public class SurveyBaseModule
         returning a Location header with a link to the newly-created resource with the 201 HTTP status.
          */
         _logger.LogInformation("PostSurvey called");
-        var result = await _cosmosDbService.UpsertSurveyBaseAsync(surveyBase);
+        System.Security.Claims.ClaimsPrincipal? claimsPrincipal = _httpContextAccessor.HttpContext?.User;
+
+        if(claimsPrincipal is null)
+        {
+            return TypedResults.BadRequest();
+        }
+
+        var result = await _cosmosDbService.UpsertSurveyBaseAsync(surveyBase, claimsPrincipal);
         _logger.LogInformation("PostSurvey: {@result}", result);
         return result switch
         {
@@ -105,7 +120,7 @@ public class SurveyBaseModule
         //Need to prevent over posting
     }
 
-    public async Task<NoContent> PutSurvey(
+    public async Task<Results<NoContent, BadRequest>> PutSurvey(
         [FromBody] SurveyBase surveyBase)
     {
         /*
@@ -116,7 +131,13 @@ public class SurveyBaseModule
         If using PUT for create, return HTTP status 201 on successful creation. PUT is not safe operation but it’s idempotent.
          */
         _logger.LogInformation("PutSurvey called");
-        _ = await _cosmosDbService.UpsertSurveyBaseAsync(surveyBase);
+        System.Security.Claims.ClaimsPrincipal? claimsPrincipal = _httpContextAccessor.HttpContext?.User;
+        if (claimsPrincipal is null)
+        {
+            return TypedResults.BadRequest();
+        }
+
+        _ = await _cosmosDbService.UpsertSurveyBaseAsync(surveyBase, claimsPrincipal);
         return TypedResults.NoContent();
 
         //Do I want to upsert here?
