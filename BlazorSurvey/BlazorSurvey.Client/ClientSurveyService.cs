@@ -4,10 +4,7 @@ using System.Net.Http.Json;
 
 internal class ClientSurveyService(HttpClient httpClient) : ISurveyService
 {
-    public List<LivePoll> GetLivePolls()
-    {
-        throw new NotImplementedException();
-    }
+   
     public async Task<SurveyBaseTakeSurveyDto?> GetSurveyBaseAsync(Guid surveyId)
     {
         return await httpClient.GetFromJsonAsync<SurveyBaseTakeSurveyDto>($"/api/survey/{surveyId}");

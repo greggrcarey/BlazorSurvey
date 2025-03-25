@@ -19,11 +19,7 @@ public class ServerSurveyService : ISurveyService
     {
         await _cosmosDbService.DeleteSurveyBaseAsync(surveyId);
     }
-
-    public List<LivePoll> GetLivePolls()
-    {
-        throw new NotImplementedException();
-    }
+   
     public async Task<SurveyBaseTakeSurveyDto?> GetSurveyBaseAsync(Guid surveyId)
     {
         return await _cosmosDbService.GetSurveyBaseAsync(surveyId);

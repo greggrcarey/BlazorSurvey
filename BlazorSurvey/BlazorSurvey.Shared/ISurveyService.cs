@@ -4,7 +4,6 @@ namespace BlazorSurvey.Shared;
 public interface ISurveyService
 {
     IAsyncEnumerable<SurveyBase> GetSurveys();
-    List<LivePoll> GetLivePolls();
     Task SaveSurvey(SurveyBase surveyModel);
     Task PostSurveyAsync(SurveyBase surveyModel);
     Task<SurveyBaseTakeSurveyDto?> GetSurveyBaseAsync(Guid surveyBaseId);
