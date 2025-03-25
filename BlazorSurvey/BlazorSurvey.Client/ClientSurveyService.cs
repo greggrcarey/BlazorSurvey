@@ -34,19 +34,9 @@ internal class ClientSurveyService(HttpClient httpClient) : ISurveyService
         await httpClient.PostAsJsonAsync($"/api/survey", surveyModel);
     }
 
-    public async Task PutSurveyAsync(SurveyBase surveyModel)
-    {
-        _ = await httpClient.PutAsJsonAsync($"/api/survey", surveyModel);
-    }
-
     public async Task DeleteSurvey(Guid surveyId)
     {
         _ = await httpClient.DeleteAsync($"/api/survey/{surveyId}");
-    }
-
-    public async Task SaveSurvey(SurveyBase surveyModel)
-    {
-        _ = await httpClient.PostAsJsonAsync($"/api/survey", surveyModel);
     }
 
     public async Task PostSurveyResponses(SurveyBase surveyModel)

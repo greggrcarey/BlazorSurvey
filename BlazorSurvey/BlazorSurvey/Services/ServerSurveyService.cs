@@ -42,43 +42,18 @@ internal class ServerSurveyService : ISurveyService
 
     public Task PostSurveyAsync(SurveyBase surveyModel)
     {
-        //Post should Create
         ClaimsPrincipal? claimsPrincipal = _userService.GetUser();
         if (claimsPrincipal == null)
         {
             throw new InvalidOperationException("ClaimsPrincipal cannot be null for PostSurveyAsync");
         }
 
-
-        return _cosmosDbService.ReplaceSurveyBaseAsync(surveyModel, claimsPrincipal);
+        return _cosmosDbService.CreateSurveyBasetypeAsync(surveyModel, claimsPrincipal);
     }
 
     public Task PostSurveyResponses(SurveyBase surveyModel)
     {
         return _cosmosDbService.PatchSurveyAtResponses(surveyModel);
-    }
-
-    public Task PutSurveyAsync(SurveyBase surveyModel)
-    {
-        //Put should replace
-        ClaimsPrincipal? claimsPrincipal = _userService.GetUser();
-        if (claimsPrincipal == null)
-        {
-            throw new InvalidOperationException("ClaimsPrincipal cannot be null for PutSurveyAsync");
-        }
-
-        return _cosmosDbService.ReplaceSurveyBaseAsync(surveyModel, claimsPrincipal);
-    }
-
-    public async Task SaveSurvey(SurveyBase surveyModel)
-    {
-        ClaimsPrincipal? claimsPrincipal = _userService.GetUser();
-        if (claimsPrincipal == null)
-        {
-            throw new InvalidOperationException("ClaimsPrincipal cannot be null for PutSurveyAsync");
-        }
-
-        await _cosmosDbService.CreateSurveyBasetypeAsync(surveyModel, claimsPrincipal);
     }
 
 }

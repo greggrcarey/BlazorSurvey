@@ -95,7 +95,6 @@ public class SurveyBaseModule
     public async Task<Results<CreatedAtRoute<SurveyBase>, BadRequest>> PostSurvey(
         [FromBody] SurveyBase surveyBase)
     {
-        //Post should create 
         /*
          POST: The POST verb is most often utilized to create new resources. 
         In particular, it’s used to create subordinate resources. 
@@ -111,7 +110,7 @@ public class SurveyBaseModule
             return TypedResults.BadRequest();
         }
 
-        var result = await _cosmosDbService.ReplaceSurveyBaseAsync(surveyBase, claimsPrincipal);
+        var result = await _cosmosDbService.CreateSurveyBasetypeAsync(surveyBase, claimsPrincipal);
         _logger.LogInformation("PostSurvey: {@result}", result);
         return result switch
         {

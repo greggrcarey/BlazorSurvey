@@ -46,7 +46,7 @@ public class CosmosDbService
     //https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/conceptual-resilient-sdk-applications
     //https://learn.microsoft.com/en-us/dotnet/core/resilience/?tabs=dotnet-cli
 
-    public async Task CreateSurveyBasetypeAsync(SurveyBase surveyBase, ClaimsPrincipal claimsPrincipal)
+    public async Task<SurveyBase?> CreateSurveyBasetypeAsync(SurveyBase surveyBase, ClaimsPrincipal claimsPrincipal)
     {
         //Should Be POST
         Container container = GetSurveyContainer();
@@ -56,11 +56,10 @@ public class CosmosDbService
         if(user is null)
         {
             _logger.LogError("Null user returned in CreateSurveyBasetypeAsync");
-            return; //How do I handle this better?
+            return null; //How do I handle this better?
         }
 
         surveyBase.UserId = user.Id;
-
         try
         {
             ItemResponse<SurveyBase>? surveyBaseResponse = await container.CreateItemAsync(surveyBase, partitionKey: new PartitionKey(surveyBase.Id.ToString()));
@@ -68,12 +67,14 @@ public class CosmosDbService
                 surveyBaseResponse.StatusCode == System.Net.HttpStatusCode.Accepted)
             {
                 _memoryCache.Set<SurveyBase>(surveyBase.Id, surveyBaseResponse.Resource, CacheEntryOptions);
+                return surveyBaseResponse.Resource;
             }
-
+            return null;
         }
         catch (CosmosException cex)
         {
             _logger.LogError(cex, cex.Message, []);
+            return null;
         }
     }
 
@@ -126,8 +127,6 @@ public class CosmosDbService
     }
     public async Task<SurveyBase> ReplaceSurveyBaseAsync(SurveyBase surveyBase, ClaimsPrincipal claimsPrincipal)
     {
-        //Change Upsert to Replace 
-        //should be PUT verb
         if (surveyBase.Questions.Count > 10)
         {
             // TODO: fix validation
@@ -141,9 +140,7 @@ public class CosmosDbService
             surveyBase.UserId = user.Id;
         }
 
-        //TODO: Chase this down and see if I can remove it
         Container surveyContainer = GetSurveyContainer();
-        //ItemResponse<SurveyBase>? response = await surveyContainer.UpsertItemAsync(item: surveyBase, partitionKey: new PartitionKey(surveyBase.Id.ToString()));
         ItemResponse<SurveyBase>? response = await surveyContainer.ReplaceItemAsync(item: surveyBase, id: surveyBase.Id.ToString(), partitionKey: new PartitionKey(surveyBase.Id.ToString()));
 
         _memoryCache.Remove(response.Resource.Id);
