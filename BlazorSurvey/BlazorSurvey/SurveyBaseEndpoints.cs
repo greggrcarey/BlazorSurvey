@@ -95,6 +95,7 @@ public class SurveyBaseModule
     public async Task<Results<CreatedAtRoute<SurveyBase>, BadRequest>> PostSurvey(
         [FromBody] SurveyBase surveyBase)
     {
+        //Post should create 
         /*
          POST: The POST verb is most often utilized to create new resources. 
         In particular, it’s used to create subordinate resources. 
@@ -110,7 +111,7 @@ public class SurveyBaseModule
             return TypedResults.BadRequest();
         }
 
-        var result = await _cosmosDbService.UpsertSurveyBaseAsync(surveyBase, claimsPrincipal);
+        var result = await _cosmosDbService.ReplaceSurveyBaseAsync(surveyBase, claimsPrincipal);
         _logger.LogInformation("PostSurvey: {@result}", result);
         return result switch
         {
@@ -123,6 +124,7 @@ public class SurveyBaseModule
     public async Task<Results<NoContent, BadRequest>> PutSurvey(
         [FromBody] SurveyBase surveyBase)
     {
+        //PUT should repl
         /*
          PUT: It is used for updating the capabilities. 
         However, PUT can also be used to create a resource in the case where the resource ID is chosen by the client instead of by the server. 
@@ -137,7 +139,7 @@ public class SurveyBaseModule
             return TypedResults.BadRequest();
         }
 
-        _ = await _cosmosDbService.UpsertSurveyBaseAsync(surveyBase, claimsPrincipal);
+        _ = await _cosmosDbService.ReplaceSurveyBaseAsync(surveyBase, claimsPrincipal);
         return TypedResults.NoContent();
 
         //Do I want to upsert here?

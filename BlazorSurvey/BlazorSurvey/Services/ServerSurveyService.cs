@@ -4,7 +4,7 @@ using System.Security.Claims;
 
 namespace BlazorSurvey.Services;
 
-public class ServerSurveyService : ISurveyService
+internal class ServerSurveyService : ISurveyService
 {
     private readonly CosmosDbService _cosmosDbService;
     private readonly UserService _userService;
@@ -42,6 +42,7 @@ public class ServerSurveyService : ISurveyService
 
     public Task PostSurveyAsync(SurveyBase surveyModel)
     {
+        //Post should Create
         ClaimsPrincipal? claimsPrincipal = _userService.GetUser();
         if (claimsPrincipal == null)
         {
@@ -49,7 +50,7 @@ public class ServerSurveyService : ISurveyService
         }
 
 
-        return _cosmosDbService.UpsertSurveyBaseAsync(surveyModel, claimsPrincipal);
+        return _cosmosDbService.ReplaceSurveyBaseAsync(surveyModel, claimsPrincipal);
     }
 
     public Task PostSurveyResponses(SurveyBase surveyModel)
@@ -59,13 +60,14 @@ public class ServerSurveyService : ISurveyService
 
     public Task PutSurveyAsync(SurveyBase surveyModel)
     {
+        //Put should replace
         ClaimsPrincipal? claimsPrincipal = _userService.GetUser();
         if (claimsPrincipal == null)
         {
             throw new InvalidOperationException("ClaimsPrincipal cannot be null for PutSurveyAsync");
         }
 
-        return _cosmosDbService.UpsertSurveyBaseAsync(surveyModel, claimsPrincipal);
+        return _cosmosDbService.ReplaceSurveyBaseAsync(surveyModel, claimsPrincipal);
     }
 
     public async Task SaveSurvey(SurveyBase surveyModel)

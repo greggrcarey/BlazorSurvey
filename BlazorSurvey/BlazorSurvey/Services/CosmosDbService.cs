@@ -48,6 +48,7 @@ public class CosmosDbService
 
     public async Task CreateSurveyBasetypeAsync(SurveyBase surveyBase, ClaimsPrincipal claimsPrincipal)
     {
+        //Should Be POST
         Container container = GetSurveyContainer();
 
         var user = await GetCurrentUser(claimsPrincipal);
@@ -123,9 +124,10 @@ public class CosmosDbService
         return cachedValue.ToTakeSurveyBaseDto();
 
     }
-    public async Task<SurveyBase> UpsertSurveyBaseAsync(SurveyBase surveyBase, ClaimsPrincipal claimsPrincipal)
+    public async Task<SurveyBase> ReplaceSurveyBaseAsync(SurveyBase surveyBase, ClaimsPrincipal claimsPrincipal)
     {
-
+        //Change Upsert to Replace 
+        //should be PUT verb
         if (surveyBase.Questions.Count > 10)
         {
             // TODO: fix validation
@@ -141,7 +143,8 @@ public class CosmosDbService
 
         //TODO: Chase this down and see if I can remove it
         Container surveyContainer = GetSurveyContainer();
-        ItemResponse<SurveyBase>? response = await surveyContainer.UpsertItemAsync(item: surveyBase, partitionKey: new PartitionKey(surveyBase.Id.ToString()));
+        //ItemResponse<SurveyBase>? response = await surveyContainer.UpsertItemAsync(item: surveyBase, partitionKey: new PartitionKey(surveyBase.Id.ToString()));
+        ItemResponse<SurveyBase>? response = await surveyContainer.ReplaceItemAsync(item: surveyBase, id: surveyBase.Id.ToString(), partitionKey: new PartitionKey(surveyBase.Id.ToString()));
 
         _memoryCache.Remove(response.Resource.Id);
         _memoryCache.Set<SurveyBase>(surveyBase.Id, response.Resource, CacheEntryOptions);
