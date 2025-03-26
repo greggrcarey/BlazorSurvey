@@ -24,8 +24,6 @@ using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//probably in here somewhere
-//https://learn.microsoft.com/en-us/aspnet/core/blazor/security/?view=aspnetcore-9.0&tabs=visual-studio
 
 #region Configuration
 IConfigurationRoot configuration = new ConfigurationBuilder()
@@ -67,7 +65,7 @@ builder.Services.AddAuthentication(options =>
     })
     .AddIdentityCookies();
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+var connectionString = builder.Configuration.GetConnectionString("SqlAuthConnection") ?? throw new InvalidOperationException("Connection string 'SqlAuthConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -233,8 +231,6 @@ app.UseHttpsRedirection();
 
 app.UseAntiforgery();
 
-//var surveyModule = app.Services.GetRequiredService<SurveyBaseModule>();
-//surveyModule.MapSurveyBaseEndpoints(app);
 
 using ServiceProvider serviceProvider = builder.Services.BuildServiceProvider(validateScopes: true);
 using (IServiceScope scope = serviceProvider.CreateScope())
@@ -242,9 +238,6 @@ using (IServiceScope scope = serviceProvider.CreateScope())
     var surveyModule1 = scope.ServiceProvider.GetRequiredService<SurveyBaseModule>();
     surveyModule1.MapSurveyBaseEndpoints(app);
 }
-
-
-//need to review for ServiceLocator Pattern
 //https://learn.microsoft.com/en-us/dotnet/core/extensions/dependency-injection-guidelines#scoped-service-as-singleton
 
 
