@@ -38,17 +38,6 @@ builder.Services.AddRazorComponents()
     .AddInteractiveWebAssemblyComponents()
     .AddAuthenticationStateSerialization();
 
-#region CORS
-builder.Services.AddCors(options =>
-{
-    options.AddDefaultPolicy(
-    policy =>
-    {
-        policy.WithOrigins("https://localhost:7144", "http://localhost:5072").AllowAnyHeader().AllowAnyMethod();
-    });
-});
-
-#endregion
 
 
 
@@ -114,49 +103,52 @@ builder.Services.AddSingleton<CosmosClient>(sp =>
 
 #endregion
 
-#region OTEL
-builder.Services.AddOpenTelemetry()
-    .ConfigureResource(resource => resource.AddService(nameof(BlazorSurvey)))
-    .WithMetrics(metrics =>
-    {
-        metrics
-        .AddAspNetCoreInstrumentation()
-        .AddAspNetCoreInstrumentation();
 
-        metrics
-            .AddOtlpExporter(options =>
+if (!builder.Environment.IsProduction())
+{
+    #region OTEL
+    builder.Services.AddOpenTelemetry()
+        .ConfigureResource(resource => resource.AddService(nameof(BlazorSurvey)))
+        .WithMetrics(metrics =>
+        {
+            metrics
+            .AddAspNetCoreInstrumentation()
+            .AddAspNetCoreInstrumentation();
+
+            metrics
+                .AddOtlpExporter(options =>
+                {
+                    options.Endpoint = new Uri("http://localhost:5341/ingest/otlp/v1/logs");
+                    options.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
+                    options.Headers = $"X-Seq-ApiKey={configuration["local:SeqApiKey"]}";
+
+                });
+        })
+        .WithTracing(tracing =>
+        {
+            tracing
+                .AddAspNetCoreInstrumentation()
+                .AddHttpClientInstrumentation();
+
+            tracing.AddOtlpExporter(options =>
             {
                 options.Endpoint = new Uri("http://localhost:5341/ingest/otlp/v1/logs");
                 options.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
                 options.Headers = $"X-Seq-ApiKey={configuration["local:SeqApiKey"]}";
 
             });
-    })
-    .WithTracing(tracing =>
-    {
-        tracing
-            .AddAspNetCoreInstrumentation()
-            .AddHttpClientInstrumentation();
-
-        tracing.AddOtlpExporter(options =>
-        {
-            options.Endpoint = new Uri("http://localhost:5341/ingest/otlp/v1/logs");
-            options.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
-            options.Headers = $"X-Seq-ApiKey={configuration["local:SeqApiKey"]}";
-
         });
-    });
 
-builder.Logging.AddOpenTelemetry(logging => logging.AddOtlpExporter(options =>
-{
-    options.Endpoint = new Uri("http://localhost:5341/ingest/otlp/v1/logs");
-    options.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
-    options.Headers = $"X-Seq-ApiKey={configuration["local:SeqApiKey"]}";
+    builder.Logging.AddOpenTelemetry(logging => logging.AddOtlpExporter(options =>
+    {
+        options.Endpoint = new Uri("http://localhost:5341/ingest/otlp/v1/logs");
+        options.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
+        options.Headers = $"X-Seq-ApiKey={configuration["local:SeqApiKey"]}";
 
-}));
+    }));
 
-#endregion
-
+    #endregion
+}
 
 
 #region Rate Limiter
