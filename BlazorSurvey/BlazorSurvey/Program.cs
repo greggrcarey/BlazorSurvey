@@ -91,8 +91,8 @@ builder.Services.AddSingleton<CosmosClient>(sp =>
         UseSystemTextJsonSerializerWithOptions = jsOptions
     };
 
-    string? endpoint = configuration["CosmosDbAccountEndpoint"] ?? throw new InvalidOperationException("CosmosDbAccountEndpoint is missing from configuration");
-    string? authkey = configuration["CosmosDbAuthKey"] ?? throw new InvalidOperationException("CosmosDbAuthKey is missing from configuration");
+    string? endpoint = builder.Configuration.GetConnectionString("CosmosDbAccountEndpoint") ?? throw new InvalidOperationException("CosmosDbAccountEndpoint is missing from configuration");
+    string? authkey = builder.Configuration["CosmosDbAuthKey"] ?? throw new InvalidOperationException("CosmosDbAuthKey is missing from configuration");
 
     return new CosmosClient(
         accountEndpoint: endpoint,
