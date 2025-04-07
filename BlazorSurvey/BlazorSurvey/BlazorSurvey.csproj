@@ -2,6 +2,8 @@
   <ItemGroup>
     <ProjectReference Include="..\BlazorSurvey.Client\BlazorSurvey.Client.csproj" />
     <ProjectReference Include="..\BlazorSurvey.Shared\BlazorSurvey.Shared.csproj" />
+    <PackageReference Include="Azure.Identity" />
+    <PackageReference Include="Azure.ResourceManager.CosmosDB" />
     <PackageReference Include="Extensions.MudBlazor.StaticInput" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" />
@@ -12,6 +14,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Azure" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
     <PackageReference Include="MudBlazor" />
     <PackageReference Include="Newtonsoft.Json" />

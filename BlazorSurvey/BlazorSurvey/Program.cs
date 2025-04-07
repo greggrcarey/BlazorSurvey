@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Azure.Cosmos;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Azure;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using MudBlazor.Services;
 using OpenTelemetry.Logs;
@@ -21,6 +23,9 @@ using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
+using Azure.Identity;
+using Azure.ResourceManager;
+using Azure.Core;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,6 +44,28 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents()
     .AddAuthenticationStateSerialization();
+
+builder.Services.AddAzureClients(clientBuilder =>
+{
+    TokenCredential tokenCredential;
+
+    if (!builder.Environment.IsDevelopment())
+    {
+        string? clientId = builder.Configuration["AZURE_CLIENT_ID"];
+        tokenCredential = new ManagedIdentityCredential(ManagedIdentityId.FromUserAssignedClientId(clientId));
+    }
+    else
+    {
+        tokenCredential = new ChainedTokenCredential(
+            new VisualStudioCodeCredential(),
+            new AzureCliCredential(),
+            new AzurePowerShellCredential());
+    }
+
+    clientBuilder.UseCredential(tokenCredential);
+});
+
+
 
 #region CORS
 builder.Services.AddCors(options =>
@@ -67,7 +94,19 @@ builder.Services.AddAuthentication(options =>
     })
     .AddIdentityCookies();
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+var connectionString = string.Empty;
+
+if (builder.Environment.IsDevelopment())
+{
+    connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+}
+else
+{
+    connectionString = builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING") ?? throw new InvalidOperationException("Connection string 'AZURE_SQL_CONNECTIONSTRING' not found.");
+}
+
+
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -104,13 +143,28 @@ builder.Services.AddSingleton<CosmosClient>(sp =>
         UseSystemTextJsonSerializerWithOptions = jsOptions
     };
 
-    string? endpoint = configuration["CosmosDbAccountEndpoint"] ?? throw new InvalidOperationException("CosmosDbAccountEndpoint is missing from configuration");
-    string? authkey = configuration["CosmosDbAuthKey"] ?? throw new InvalidOperationException("CosmosDbAuthKey is missing from configuration");
 
-    return new CosmosClient(
-        accountEndpoint: endpoint,
-        authKeyOrResourceToken: authkey,
-        clientOptions: cosmosClientOptions);
+
+    if (builder.Environment.IsDevelopment())
+    {
+
+        string? endpoint = builder.Configuration["CosmosDbAccountEndpoint"] ?? throw new InvalidOperationException("CosmosDbAccountEndpoint is missing from configuration");
+        string? authkey = builder.Configuration["CosmosDbAuthKey"] ?? throw new InvalidOperationException("CosmosDbAuthKey is missing from configuration");
+
+        return new CosmosClient(
+            accountEndpoint: endpoint,
+            authKeyOrResourceToken: authkey,
+            clientOptions: cosmosClientOptions);
+
+    }
+    else
+    {
+        return new CosmosClient(
+            accountEndpoint: configuration.GetConnectionString("AccountEndpoint"),
+            authKeyOrResourceToken: builder.Configuration["CosmosDbProdKey"],
+            clientOptions: cosmosClientOptions);
+
+    }
 
 });
 
