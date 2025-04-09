@@ -45,37 +45,21 @@ builder.Services.AddRazorComponents()
     .AddInteractiveWebAssemblyComponents()
     .AddAuthenticationStateSerialization();
 
-builder.Services.AddAzureClients(clientBuilder =>
-{
-    TokenCredential tokenCredential;
-
-    if (!builder.Environment.IsDevelopment())
-    {
-        string? clientId = builder.Configuration["AZURE_CLIENT_ID"];
-        tokenCredential = new ManagedIdentityCredential(ManagedIdentityId.FromUserAssignedClientId(clientId));
-    }
-    else
-    {
-        tokenCredential = new ChainedTokenCredential(
-            new VisualStudioCodeCredential(),
-            new AzureCliCredential(),
-            new AzurePowerShellCredential());
-    }
-
-    clientBuilder.UseCredential(tokenCredential);
-});
 
 
 
 #region CORS
-builder.Services.AddCors(options =>
+if (builder.Environment.IsDevelopment())
 {
-    options.AddDefaultPolicy(
-    policy =>
+    builder.Services.AddCors(options =>
     {
-        policy.WithOrigins("https://localhost:7144", "http://localhost:5072").AllowAnyHeader().AllowAnyMethod();
+        options.AddDefaultPolicy(
+        policy =>
+        {
+            policy.WithOrigins("https://localhost:7144", "http://localhost:5072").AllowAnyHeader().AllowAnyMethod();
+        });
     });
-});
+}
 
 #endregion
 
@@ -143,11 +127,8 @@ builder.Services.AddSingleton<CosmosClient>(sp =>
         UseSystemTextJsonSerializerWithOptions = jsOptions
     };
 
-
-
     if (builder.Environment.IsDevelopment())
     {
-
         string? endpoint = builder.Configuration["CosmosDbAccountEndpoint"] ?? throw new InvalidOperationException("CosmosDbAccountEndpoint is missing from configuration");
         string? authkey = builder.Configuration["CosmosDbAuthKey"] ?? throw new InvalidOperationException("CosmosDbAuthKey is missing from configuration");
 
@@ -155,61 +136,67 @@ builder.Services.AddSingleton<CosmosClient>(sp =>
             accountEndpoint: endpoint,
             authKeyOrResourceToken: authkey,
             clientOptions: cosmosClientOptions);
-
     }
     else
     {
+        string? endpoint = builder.Configuration["DOCDBCONNSTR_CosmosDBProdConnection"] ?? throw new InvalidOperationException("DOCDBCONNSTR_CosmosDBProdConnection is missing from configuration");
+        string? clientId = builder.Configuration["USER_MANAGED_ID"];
+        ManagedIdentityCredential? tokenCredential = new ManagedIdentityCredential(ManagedIdentityId.FromUserAssignedClientId(clientId));
+
+
         return new CosmosClient(
-            accountEndpoint: configuration.GetConnectionString("AccountEndpoint"),
-            authKeyOrResourceToken: builder.Configuration["CosmosDbProdKey"],
+            accountEndpoint: endpoint,
+            tokenCredential: tokenCredential ,
             clientOptions: cosmosClientOptions);
-
     }
-
 });
 
 #endregion
 
 #region OTEL
-builder.Services.AddOpenTelemetry()
-    .ConfigureResource(resource => resource.AddService(nameof(BlazorSurvey)))
-    .WithMetrics(metrics =>
-    {
-        metrics
-        .AddAspNetCoreInstrumentation()
-        .AddAspNetCoreInstrumentation();
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddOpenTelemetry()
 
-        metrics
-            .AddOtlpExporter(options =>
+        .ConfigureResource(resource => resource.AddService(nameof(BlazorSurvey)))
+        .WithMetrics(metrics =>
+        {
+            metrics
+            .AddAspNetCoreInstrumentation()
+            .AddAspNetCoreInstrumentation();
+
+            metrics
+                .AddOtlpExporter(options =>
+                {
+                    options.Endpoint = new Uri("http://localhost:5341/ingest/otlp/v1/logs");
+                    options.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
+                    options.Headers = $"X-Seq-ApiKey={configuration["local:SeqApiKey"]}";
+
+                });
+        })
+        .WithTracing(tracing =>
+        {
+            tracing
+                .AddAspNetCoreInstrumentation()
+                .AddHttpClientInstrumentation();
+
+            tracing.AddOtlpExporter(options =>
             {
                 options.Endpoint = new Uri("http://localhost:5341/ingest/otlp/v1/logs");
                 options.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
                 options.Headers = $"X-Seq-ApiKey={configuration["local:SeqApiKey"]}";
 
             });
-    })
-    .WithTracing(tracing =>
-    {
-        tracing
-            .AddAspNetCoreInstrumentation()
-            .AddHttpClientInstrumentation();
-
-        tracing.AddOtlpExporter(options =>
-        {
-            options.Endpoint = new Uri("http://localhost:5341/ingest/otlp/v1/logs");
-            options.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
-            options.Headers = $"X-Seq-ApiKey={configuration["local:SeqApiKey"]}";
-
         });
-    });
 
-builder.Logging.AddOpenTelemetry(logging => logging.AddOtlpExporter(options =>
-{
-    options.Endpoint = new Uri("http://localhost:5341/ingest/otlp/v1/logs");
-    options.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
-    options.Headers = $"X-Seq-ApiKey={configuration["local:SeqApiKey"]}";
+    builder.Logging.AddOpenTelemetry(logging => logging.AddOtlpExporter(options =>
+    {
+        options.Endpoint = new Uri("http://localhost:5341/ingest/otlp/v1/logs");
+        options.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
+        options.Headers = $"X-Seq-ApiKey={configuration["local:SeqApiKey"]}";
 
-}));
+    }));
+}
 
 #endregion
 
@@ -287,8 +274,6 @@ app.UseHttpsRedirection();
 
 app.UseAntiforgery();
 
-//var surveyModule = app.Services.GetRequiredService<SurveyBaseModule>();
-//surveyModule.MapSurveyBaseEndpoints(app);
 
 using ServiceProvider serviceProvider = builder.Services.BuildServiceProvider(validateScopes: true);
 using (IServiceScope scope = serviceProvider.CreateScope())
@@ -296,8 +281,6 @@ using (IServiceScope scope = serviceProvider.CreateScope())
     var surveyModule1 = scope.ServiceProvider.GetRequiredService<SurveyBaseModule>();
     surveyModule1.MapSurveyBaseEndpoints(app);
 }
-
-
 //need to review for ServiceLocator Pattern
 //https://learn.microsoft.com/en-us/dotnet/core/extensions/dependency-injection-guidelines#scoped-service-as-singleton
 
