@@ -43,7 +43,7 @@ public class EmailSender(IOptions<AuthMessageSenderOptions> optionsAccessor,
         string toEmail)
     {
         var api = new MandrillApi(apiKey);
-        var mandrillMessage = new MandrillMessage("sarah@contoso.com", toEmail,
+        var mandrillMessage = new MandrillMessage("info@symbolforge.com", toEmail,
             subject, message);
         await api.Messages.SendAsync(mandrillMessage);
 

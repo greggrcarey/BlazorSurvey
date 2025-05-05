@@ -161,7 +161,7 @@ builder.Services.AddSingleton<CosmosClient>(sp =>
     }
     else
     {
-        string? endpoint = builder.Configuration["DOCDBCONNSTR_CosmosDBProdConnection"] ?? throw new InvalidOperationException("DOCDBCONNSTR_CosmosDBProdConnection is missing from configuration");
+        string? endpoint = builder.Configuration.GetConnectionString("CosmosDBConnection") ?? throw new InvalidOperationException("ConnectionStrings__CosmosDBConnection is missing from configuration");
         string? clientId = builder.Configuration["USER_MANAGED_ID"];
         ManagedIdentityCredential? tokenCredential = new ManagedIdentityCredential(ManagedIdentityId.FromUserAssignedClientId(clientId));
 
