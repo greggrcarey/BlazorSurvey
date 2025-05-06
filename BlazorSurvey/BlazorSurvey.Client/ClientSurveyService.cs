@@ -7,17 +7,17 @@ internal class ClientSurveyService(HttpClient httpClient) : ISurveyService
    
     public async Task<SurveyBaseTakeSurveyDto?> GetSurveyBaseAsync(Guid surveyId)
     {
-        return await httpClient.GetFromJsonAsync<SurveyBaseTakeSurveyDto>($"/api/survey/{surveyId}");
+        return await httpClient.GetFromJsonAsync<SurveyBaseTakeSurveyDto>($"api/survey/{surveyId}");
     }
 
     public async Task<SurveyResponseRollup?> GetSurveyResultsAsync(Guid surveyId)
     {
-        return await httpClient.GetFromJsonAsync<SurveyResponseRollup>($"/api/survey/response/{surveyId}");
+        return await httpClient.GetFromJsonAsync<SurveyResponseRollup>($"api/survey/response/{surveyId}");
     }
 
     public async IAsyncEnumerable<SurveyBase> GetSurveys()
     {
-        var surveys = httpClient.GetFromJsonAsAsyncEnumerable<SurveyBase>("/api/survey");
+        var surveys = httpClient.GetFromJsonAsAsyncEnumerable<SurveyBase>("api/survey");
 
         await foreach (var survey in surveys)
         {
@@ -31,16 +31,16 @@ internal class ClientSurveyService(HttpClient httpClient) : ISurveyService
 
     public async Task PostSurveyAsync(SurveyBase surveyModel)
     {
-        await httpClient.PostAsJsonAsync($"/api/survey", surveyModel);
+        await httpClient.PostAsJsonAsync($"api/survey", surveyModel);
     }
 
     public async Task DeleteSurvey(Guid surveyId)
     {
-        _ = await httpClient.DeleteAsync($"/api/survey/{surveyId}");
+        _ = await httpClient.DeleteAsync($"api/survey/{surveyId}");
     }
 
     public async Task PostSurveyResponses(SurveyBase surveyModel)
     {
-        _ = await httpClient.PostAsJsonAsync<SurveyBase>($"/api/survey/{surveyModel.Id}/responses", surveyModel);
+        _ = await httpClient.PostAsJsonAsync<SurveyBase>($"api/survey/{surveyModel.Id}/responses", surveyModel);
     }
 }
