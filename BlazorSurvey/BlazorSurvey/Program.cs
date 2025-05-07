@@ -47,27 +47,8 @@ builder.Services.AddRazorComponents()
     .AddAuthenticationStateSerialization();
 
 
-
-
-#region CORS
-if (builder.Environment.IsDevelopment())
-{
-    builder.Services.AddCors(options =>
-    {
-        options.AddDefaultPolicy(
-        policy =>
-        {
-            policy.WithOrigins("https://localhost:7144", "http://localhost:5072").AllowAnyHeader().AllowAnyMethod();
-        });
-    });
-}
-
-#endregion
-
-
-
-#region Authentication
-builder.Services.AddCascadingAuthenticationState();
+    #region Authentication
+    builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
