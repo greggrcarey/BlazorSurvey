@@ -14,6 +14,9 @@ builder.Services.AddSingleton<SurveyState>();
 
 builder.Services.AddScoped<ISurveyService, ClientSurveyService>();
 
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:7246") });
+
+builder.Services.AddScoped(sp => new HttpClient { 
+    BaseAddress = new Uri(builder.Configuration["WebApiUrl"] ?? "https://localhost:7246") 
+});
 
 await builder.Build().RunAsync();
