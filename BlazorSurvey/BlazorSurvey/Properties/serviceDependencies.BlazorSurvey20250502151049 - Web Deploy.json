@@ -1,0 +1,20 @@
+{
+  "dependencies": {
+    "cosmosdb1": {
+      "serviceConnectorResourceId": "/subscriptions/[parameters('subscriptionId')]/resourcegroups/[parameters('serviceConnectorResourceGroupName')]/providers/Microsoft.Web/sites/BlazorSurvey20250502151049/providers/Microsoft.ServiceLinker/linkers/ConnectionStringsCosmosDBConnection_B603825648",
+      "secretStore": "AzureAppSettings",
+      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.DocumentDB/databaseAccounts/blazorsurveyaccount",
+      "type": "cosmosdb.azure",
+      "connectionId": "ConnectionStrings:CosmosDBConnection",
+      "dynamicId": null
+    },
+    "mssql1": {
+      "serviceConnectorResourceId": "/subscriptions/[parameters('subscriptionId')]/resourcegroups/[parameters('serviceConnectorResourceGroupName')]/providers/Microsoft.Web/sites/BlazorSurvey20250502151049/providers/Microsoft.ServiceLinker/linkers/ConnectionStringsDefaultConnection_19324DF214",
+      "secretStore": "AzureAppSettings",
+      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourcegroups/[parameters('resourceGroupName')]/providers/Microsoft.Sql/servers/blazorsurveydbserver/databases/BlazorSurvey_db",
+      "type": "mssql.azure",
+      "connectionId": "ConnectionStrings:DefaultConnection",
+      "dynamicId": null
+    }
+  }
+}

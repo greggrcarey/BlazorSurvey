@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Azure.Cosmos;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Azure;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using MudBlazor.Services;
 using OpenTelemetry.Logs;
@@ -21,8 +23,14 @@ using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
+using Azure.Identity;
+using Azure.ResourceManager;
+using Azure.Core;
 
 var builder = WebApplication.CreateBuilder(args);
+
+//confirmation email
+//https://learn.microsoft.com/en-us/aspnet/core/blazor/security/account-confirmation-and-password-recovery?view=aspnetcore-9.0
 
 
 #region Configuration
@@ -39,10 +47,8 @@ builder.Services.AddRazorComponents()
     .AddAuthenticationStateSerialization();
 
 
-
-
-#region Authentication
-builder.Services.AddCascadingAuthenticationState();
+    #region Authentication
+    builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
@@ -54,17 +60,50 @@ builder.Services.AddAuthentication(options =>
     })
     .AddIdentityCookies();
 
-var connectionString = builder.Configuration.GetConnectionString("SqlAuthConnection") ?? throw new InvalidOperationException("Connection string 'SqlAuthConnection' not found.");
+var connectionString = string.Empty;
+
+if (builder.Environment.IsDevelopment())
+{
+    connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+}
+else
+{
+    connectionString = builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING") ?? throw new InvalidOperationException("Connection string 'AZURE_SQL_CONNECTIONSTRING' not found.");
+}
+
+
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
+builder.Services.AddIdentityCore<ApplicationUser>(options =>
+{
+    options.SignIn.RequireConfirmedAccount = true;
+    options.Tokens.ProviderMap.Add("CustomEmailConfirmation",
+        new TokenProviderDescriptor(
+            typeof(CustomEmailConfirmationTokenProvider<ApplicationUser>)));
+    options.Tokens.EmailConfirmationTokenProvider =
+        "CustomEmailConfirmation";
+})
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddSignInManager()
     .AddDefaultTokenProviders();
 
-builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+builder.Services
+    .AddTransient<CustomEmailConfirmationTokenProvider<ApplicationUser>>();
+
+
+builder.Services.Configure<AuthMessageSenderOptions>(builder.Configuration);
+builder.Services.AddSingleton<IEmailSender<ApplicationUser>, EmailSender>();
+
+builder.Services.ConfigureApplicationCookie(options => {
+    options.ExpireTimeSpan = TimeSpan.FromDays(5);
+    options.SlidingExpiration = true;
+});
+
+builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
+    options.TokenLifespan = TimeSpan.FromHours(3));
 #endregion
 
 #region CosmosDb
@@ -91,23 +130,37 @@ builder.Services.AddSingleton<CosmosClient>(sp =>
         UseSystemTextJsonSerializerWithOptions = jsOptions
     };
 
-    string? endpoint = builder.Configuration.GetConnectionString("CosmosDbAccountEndpoint") ?? throw new InvalidOperationException("CosmosDbAccountEndpoint is missing from configuration");
-    string? authkey = builder.Configuration["CosmosDbAuthKey"] ?? throw new InvalidOperationException("CosmosDbAuthKey is missing from configuration");
+    if (builder.Environment.IsDevelopment())
+    {
+        string? endpoint = builder.Configuration["CosmosDbAccountEndpoint"] ?? throw new InvalidOperationException("CosmosDbAccountEndpoint is missing from configuration");
+        string? authkey = builder.Configuration["CosmosDbAuthKey"] ?? throw new InvalidOperationException("CosmosDbAuthKey is missing from configuration");
 
-    return new CosmosClient(
-        accountEndpoint: endpoint,
-        authKeyOrResourceToken: authkey,
-        clientOptions: cosmosClientOptions);
+        return new CosmosClient(
+            accountEndpoint: endpoint,
+            authKeyOrResourceToken: authkey,
+            clientOptions: cosmosClientOptions);
+    }
+    else
+    {
+        string? endpoint = builder.Configuration.GetConnectionString("CosmosDBConnection") ?? throw new InvalidOperationException("ConnectionStrings__CosmosDBConnection is missing from configuration");
+        string? clientId = builder.Configuration["USER_MANAGED_ID"];
+        ManagedIdentityCredential? tokenCredential = new ManagedIdentityCredential(ManagedIdentityId.FromUserAssignedClientId(clientId));
 
+
+        return new CosmosClient(
+            accountEndpoint: endpoint,
+            tokenCredential: tokenCredential ,
+            clientOptions: cosmosClientOptions);
+    }
 });
 
 #endregion
 
-
-if (!builder.Environment.IsProduction())
+#region OTEL
+if (builder.Environment.IsDevelopment())
 {
-    #region OTEL
     builder.Services.AddOpenTelemetry()
+
         .ConfigureResource(resource => resource.AddService(nameof(BlazorSurvey)))
         .WithMetrics(metrics =>
         {
@@ -146,9 +199,10 @@ if (!builder.Environment.IsProduction())
         options.Headers = $"X-Seq-ApiKey={configuration["local:SeqApiKey"]}";
 
     }));
-
-    #endregion
 }
+
+#endregion
+
 
 
 #region Rate Limiter
@@ -230,6 +284,7 @@ using (IServiceScope scope = serviceProvider.CreateScope())
     var surveyModule1 = scope.ServiceProvider.GetRequiredService<SurveyBaseModule>();
     surveyModule1.MapSurveyBaseEndpoints(app);
 }
+//need to review for ServiceLocator Pattern
 //https://learn.microsoft.com/en-us/dotnet/core/extensions/dependency-injection-guidelines#scoped-service-as-singleton
 
 
