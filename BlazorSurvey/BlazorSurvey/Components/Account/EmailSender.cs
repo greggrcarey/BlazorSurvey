@@ -17,7 +17,7 @@ public class EmailSender(IOptions<AuthMessageSenderOptions> optionsAccessor,
     public Task SendConfirmationLinkAsync(ApplicationUser user, string email,
         string confirmationLink) => SendEmailAsync(email, "Confirm your email",
         "<html lang=\"en\"><head></head><body>Please confirm your account by " +
-        $"<a href='{confirmationLink}'>clicking here</a>.</body></html>");
+        $"<a href='{confirmationLink}'>clicking here</a>. Be sure to check your spam folder.</body></html>");
 
     public Task SendPasswordResetLinkAsync(ApplicationUser user, string email,
         string resetLink) => SendEmailAsync(email, "Reset your password",
